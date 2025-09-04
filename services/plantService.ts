@@ -1,60 +1,53 @@
 import {
     addDoc,
     collection,
-    deleteDoc,
     doc,
     getDoc,
-    getDocs,
-    query,
-    updateDoc,
-    where,
+    setDoc,
+    deleteDoc
 } from "firebase/firestore";
-import { db } from "@/firebase";
+import { auth, db } from "@/firebase";
 import { Plant } from "@/types/plant";
-import { auth } from "@/firebase";
 
 export const plantsRef = collection(db, "plants");
 
-// CREATE
-export const createPlant = async (plant: Omit<Plant, 'id'>) => {
-    const docRef = await addDoc(plantsRef, {
-        ...plant,
-        userId: auth.currentUser?.uid,
-    });
-    return docRef.id;
+// Create a new plant
+export const createPlant = async (plantData: Omit<Plant, 'id'>) => {
+    const userId = auth.currentUser?.uid;
+    if (!userId) {
+        throw new Error("User not authenticated.");
+    }
+    const dataWithUserId = { ...plantData, userId };
+    await addDoc(plantsRef, dataWithUserId);
 };
 
-// READ ALL (for the current user)
-export const getAllPlantsByUserId = async () => {
-    const q = query(plantsRef, where("userId", "==", auth.currentUser?.uid));
-    const querySnapshot = await getDocs(q);
-    const plantList = querySnapshot.docs.map((plantDoc) => ({
-        id: plantDoc.id,
-        ...plantDoc.data(),
-    })) as Plant[];
-    return plantList;
-};
-
-// READ SINGLE
+// Get a single plant by ID
 export const getPlantById = async (id: string) => {
-    const plantDocRef = doc(db, "plants", id);
-    const snapshot = await getDoc(plantDocRef);
-    return snapshot.exists()
-        ? ({
-            id: snapshot.id,
-            ...snapshot.data(),
-        } as Plant)
-        : null;
+    const docRef = doc(db, "plants", id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        return {
+            id: docSnap.id,
+            ...data,
+            // Convert Firestore Timestamps to JavaScript Date objects here
+            lastWatered: data.lastWatered?.toDate(),
+            lastFertilized: data.lastFertilized?.toDate(),
+        } as Plant;
+    } else {
+        return null;
+    }
 };
 
-// UPDATE
-export const updatePlant = async (id: string, plant: Partial<Plant>) => {
-    const plantDocRef = doc(db, "plants", id);
-    return updateDoc(plantDocRef, plant);
+// Update an existing plant
+export const updatePlant = async (id: string, plantData: Partial<Plant>) => {
+    const docRef = doc(db, "plants", id);
+    await setDoc(docRef, plantData, { merge: true });
 };
 
-// DELETE
+// Delete a plant
 export const deletePlant = async (id: string) => {
-    const plantDocRef = doc(db, "plants", id);
-    return deleteDoc(plantDocRef);
+    const docRef = doc(db, "plants", id);
+    await deleteDoc(docRef);
 };
