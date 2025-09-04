@@ -1,4 +1,5 @@
 import { useLoader } from '@/context/LoaderContext';
+import { auth } from '@/firebase';
 import { createPlant, getPlantById, updatePlant } from '@/services/plantService';
 import { Plant } from '@/types/plant';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -60,7 +61,15 @@ const PlantFormScreen = () => {
             if (isNew) {
                 await createPlant(plantData as Omit<Plant, 'id'>);
             } else {
-                await updatePlant(id, plantData);
+                // Get the current user's ID
+                const userId = auth.currentUser?.uid;
+                if (!userId) {
+                    throw new Error("User not authenticated.");
+                }
+
+                // Include the userId in the data object before updating
+                const dataToUpdate = { ...plantData, userId };
+                await updatePlant(id, dataToUpdate);
             }
             router.back();
         } catch (err) {
