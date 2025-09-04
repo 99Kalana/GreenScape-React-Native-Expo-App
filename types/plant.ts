@@ -6,4 +6,5 @@ export interface Plant {
     lastWatered: Date;
     lastFertilized: Date;
     careNotes?: string;
+    imageUrl?: string;
 }
