@@ -5,11 +5,12 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
 import { onSnapshot, query, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { auth } from '@/firebase';
 
 const PlantsScreen = () => {
     const [plants, setPlants] = useState<Plant[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const router = useRouter();
     const { showLoader, hideLoader } = useLoader();
 
@@ -52,6 +53,12 @@ const PlantsScreen = () => {
         return () => unsubscribe();
     }, []);
 
+    // New: Filter the plants array based on the search query
+    const filteredPlants = plants.filter(plant =>
+        plant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        plant.species.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     const handleDelete = async (id: string) => {
         Alert.alert("Delete Plant", "Are you sure you want to delete this plant?", [
             { text: "Cancel" },
@@ -75,6 +82,14 @@ const PlantsScreen = () => {
     return (
         <View className='flex-1 w-full'>
             <Text className='text-4xl text-center mt-5 mb-3 font-bold'>My Plants</Text>
+
+            {/* New: Search Input */}
+            <TextInput
+                placeholder="Search by name or species..."
+                className="border border-gray-400 p-3 my-2 rounded-md mx-4 bg-white"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+            />
             
             <View className="absolute bottom-5 right-5 z-10">
                 <Pressable
@@ -86,10 +101,12 @@ const PlantsScreen = () => {
             </View>
 
             <ScrollView className="mt-4">
-                {plants.length === 0 ? (
-                    <Text className="text-center text-lg mt-10">You have no plants yet. Add one!</Text>
+                {filteredPlants.length === 0 ? (
+                    <Text className="text-center text-lg mt-10">
+                        {searchQuery ? "No matching plants found." : "You have no plants yet. Add one!"}
+                    </Text>
                 ) : (
-                    plants.map((plant) => (
+                    filteredPlants.map((plant) => (
                         <View key={plant.id} className="bg-white p-4 mb-3 rounded-lg mx-4 border border-gray-200 shadow-md">
                             <Text className="text-xl font-bold text-green-700">{plant.name}</Text>
                             <Text className="text-sm text-gray-600 mb-2">Species: {plant.species}</Text>
