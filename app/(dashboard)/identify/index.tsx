@@ -72,18 +72,6 @@ const IdentifyScreen = () => {
     }
   };
 
-  // const handleAddPlant = () => {
-  //   if (identificationResult && identificationResult.name && identificationResult.name !== "No species found.") {
-  //     router.push({
-  //       pathname: "../plants/new",
-  //       params: { 
-  //         species: identificationResult.name,
-  //         imageUri: identificationResult.image,
-  //       },
-  //     });
-  //   }
-  // };
-
   const handleAddPlant = () => {
     if (identificationResult && identificationResult.scientificName && identificationResult.scientificName !== "No species found.") {
       identifiedPlantData.scientificName = identificationResult.scientificName;
