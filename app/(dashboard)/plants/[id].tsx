@@ -2,25 +2,58 @@ import { useLoader } from '@/context/LoaderContext';
 import { auth } from '@/firebase';
 import { createPlant, getPlantById, updatePlant, uploadImageAsync } from '@/services/plantService';
 import { Plant } from '@/types/plant';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import * as ImagePicker from "expo-image-picker"
+import { identifiedPlantData } from '../../../types/tempData';
 
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 const PlantFormScreen = () => {
-    const { id } = useLocalSearchParams<{ id?: string }>();
+    //const { id } = useLocalSearchParams<{ id?: string }>();
+    const { id, species: initialSpecies, imageUri: initialImageUri } = useLocalSearchParams<{ id?: string; species?: string; imageUri?: string }>();
     const isNew = !id || id === 'new';
     const [name, setName] = useState("");
     const [species, setSpecies] = useState("");
-    const [lastWatered, setLastWatered] = useState(new Date().toISOString().slice(0, 10)); // YYYY-MM-DD format
-    const [lastFertilized, setLastFertilized] = useState(new Date().toISOString().slice(0, 10));
+    // const [lastWatered, setLastWatered] = useState(new Date().toISOString().slice(0, 10)); // YYYY-MM-DD format
+    // const [lastFertilized, setLastFertilized] = useState(new Date().toISOString().slice(0, 10));
+    const [lastWatered, setLastWatered] = useState("");
+    const [lastFertilized, setLastFertilized] = useState("");
     const [careNotes, setCareNotes] = useState("");
     const [imageUri, setImageUri] = useState<string | null>(null); // State for the image URI
     const router = useRouter();
     const { showLoader, hideLoader } = useLoader();
+
+    // Use useFocusEffect to retrieve and handle data from the temporary store
+    useFocusEffect(
+        useCallback(() => {
+        if (isNew) {
+            if (identifiedPlantData.scientificName) {
+            // Always set the Species to the scientific name
+            setSpecies(identifiedPlantData.scientificName);
+            
+            // Set the Plant Name to the common name, with scientific as a fallback
+            if (identifiedPlantData.commonName && identifiedPlantData.commonName !== 'N/A') {
+                setName(identifiedPlantData.commonName.split(',')[0].trim());
+            } else {
+                setName(identifiedPlantData.scientificName);
+            }
+            }
+            if (identifiedPlantData.imageUri) {
+            setImageUri(identifiedPlantData.imageUri);
+            }
+            
+            // Clear the data after use to avoid re-population
+            identifiedPlantData.scientificName = null;
+            identifiedPlantData.commonName = null;
+            identifiedPlantData.genus = null;
+            identifiedPlantData.family = null;
+            identifiedPlantData.imageUri = null;
+        }
+        }, [isNew])
+    );
 
     // Request permissions on component mount
     useEffect(() => {
@@ -92,6 +125,21 @@ const PlantFormScreen = () => {
             return;
         }
 
+        // Regular expression to validate YYYY-MM-DD format
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+        // Validate Last Watered date
+        if (lastWatered.trim() !== '' && !dateRegex.test(lastWatered)) {
+            Alert.alert("Invalid Date Format", "Please use YYYY-MM-DD format for 'Last Watered'.");
+            return;
+        }
+
+        // Validate Last Fertilized date
+        if (lastFertilized.trim() !== '' && !dateRegex.test(lastFertilized)) {
+            Alert.alert("Invalid Date Format", "Please use YYYY-MM-DD format for 'Last Fertilized'.");
+            return;
+        }
+
         try {
             showLoader();
 
@@ -101,11 +149,15 @@ const PlantFormScreen = () => {
                 imageUrl = await uploadImageAsync(imageUri);
             }
 
+            // Use the current date as a default if the input fields are empty
+            const wateredDate = lastWatered.trim() !== '' ? new Date(lastWatered) : new Date();
+            const fertilizedDate = lastFertilized.trim() !== '' ? new Date(lastFertilized) : new Date();
+
             const plantData = {
                 name,
                 species,
-                lastWatered: new Date(lastWatered),
-                lastFertilized: new Date(lastFertilized),
+                lastWatered: wateredDate,
+                lastFertilized: fertilizedDate,
                 careNotes,
                 imageUrl // Include the image URL in the plant data
             };
