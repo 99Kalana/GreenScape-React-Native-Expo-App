@@ -1,10 +1,14 @@
 import { useLoader } from '@/context/LoaderContext';
 import { auth } from '@/firebase';
-import { createPlant, getPlantById, updatePlant } from '@/services/plantService';
+import { createPlant, getPlantById, updatePlant, uploadImageAsync } from '@/services/plantService';
 import { Plant } from '@/types/plant';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import * as ImagePicker from "expo-image-picker"
+
+
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 const PlantFormScreen = () => {
     const { id } = useLocalSearchParams<{ id?: string }>();
@@ -14,8 +18,19 @@ const PlantFormScreen = () => {
     const [lastWatered, setLastWatered] = useState(new Date().toISOString().slice(0, 10)); // YYYY-MM-DD format
     const [lastFertilized, setLastFertilized] = useState(new Date().toISOString().slice(0, 10));
     const [careNotes, setCareNotes] = useState("");
+    const [imageUri, setImageUri] = useState<string | null>(null); // State for the image URI
     const router = useRouter();
     const { showLoader, hideLoader } = useLoader();
+
+    // Request permissions on component mount
+    useEffect(() => {
+        (async () => {
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission denied', 'Sorry, we need camera roll permissions to make this work!');
+            }
+        })();
+    }, []);
 
     
     useEffect(() => {
@@ -30,6 +45,7 @@ const PlantFormScreen = () => {
                         if (plant.lastWatered) setLastWatered(plant.lastWatered.toISOString().slice(0, 10));
                         if (plant.lastFertilized) setLastFertilized(plant.lastFertilized.toISOString().slice(0, 10));
                         if (plant.careNotes) setCareNotes(plant.careNotes);
+                        if (plant.imageUrl) setImageUri(plant.imageUrl); // Load existing image
                     }
                 } catch (error) {
                     console.error("Failed to load plant data:", error);
@@ -42,6 +58,34 @@ const PlantFormScreen = () => {
         loadPlantData();
     }, [id]);
 
+    const handlePickImage = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            // This is the correct, future-proof syntax
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            setImageUri(result.assets[0].uri);
+        }
+    };
+
+    const handleTakePhoto = async () => {
+        const result = await ImagePicker.launchCameraAsync({
+            // Also apply the fix here for consistency
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            setImageUri(result.assets[0].uri);
+        }
+    };
+
     const handleSubmit = async () => {
         if (!name.trim() || !species.trim()) {
             Alert.alert("Validation", "Name and Species are required.");
@@ -50,12 +94,20 @@ const PlantFormScreen = () => {
 
         try {
             showLoader();
+
+            let imageUrl = null;
+            if (imageUri) {
+                // Upload the image to Firebase Storage and get the download URL
+                imageUrl = await uploadImageAsync(imageUri);
+            }
+
             const plantData = {
                 name,
                 species,
                 lastWatered: new Date(lastWatered),
                 lastFertilized: new Date(lastFertilized),
                 careNotes,
+                imageUrl // Include the image URL in the plant data
             };
 
             if (isNew) {
@@ -85,6 +137,32 @@ const PlantFormScreen = () => {
             <Text className="text-3xl font-bold text-center mt-5 mb-4 text-green-700">
                 {isNew ? "Add New Plant" : "Edit Plant"}
             </Text>
+
+            {/* Image Preview and Buttons */}
+            <View className="items-center my-4">
+                {imageUri ? (
+                    <Image source={{ uri: imageUri }} style={{ width: 200, height: 200, borderRadius: 12 }} />
+                ) : (
+                    <View className="w-52 h-52 bg-gray-300 rounded-xl items-center justify-center">
+                        <Text className="text-gray-500 text-lg">No Image</Text>
+                    </View>
+                )}
+                <View className="flex-row mt-4">
+                    <TouchableOpacity
+                        className="bg-blue-500 rounded-md px-4 py-2 mr-2"
+                        onPress={handlePickImage}
+                    >
+                        <Text className="text-white font-semibold">Pick Image</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        className="bg-blue-500 rounded-md px-4 py-2"
+                        onPress={handleTakePhoto}
+                    >
+                        <Text className="text-white font-semibold">Take Photo</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
             <TextInput
                 placeholder="Plant Name"
                 className="border border-gray-400 p-3 my-2 rounded-md bg-white"

@@ -8,6 +8,7 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "@/firebase";
 import { Plant } from "@/types/plant";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export const plantsRef = collection(db, "plants");
 
@@ -50,4 +51,32 @@ export const updatePlant = async (id: string, plantData: Partial<Plant>) => {
 export const deletePlant = async (id: string) => {
     const docRef = doc(db, "plants", id);
     await deleteDoc(docRef);
+};
+
+// A new function to upload an image to Firebase Storage
+export const uploadImageAsync = async (uri: string) => {
+  const storage = getStorage();
+  const userId = auth.currentUser?.uid;
+  if (!userId) {
+    throw new Error("User not authenticated.");
+  }
+
+  const blob: Blob = await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.onload = function () {
+      resolve(xhr.response);
+    };
+    xhr.onerror = function () {
+      reject(new TypeError("Network request failed"));
+    };
+    xhr.responseType = "blob";
+    xhr.open("GET", uri, true);
+    xhr.send(null);
+  });
+
+  const fileRef = ref(storage, `images/${userId}/${Date.now()}`);
+  await uploadBytes(fileRef, blob);
+  const downloadURL = await getDownloadURL(fileRef);
+
+  return downloadURL;
 };
