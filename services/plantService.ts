@@ -4,7 +4,10 @@ import {
     doc,
     getDoc,
     setDoc,
-    deleteDoc
+    deleteDoc,
+    query,
+    where,
+    getDocs
 } from "firebase/firestore";
 import { auth, db } from "@/firebase";
 import { Plant } from "@/types/plant";
@@ -39,6 +42,36 @@ export const getPlantById = async (id: string) => {
     } else {
         return null;
     }
+};
+
+export const getPlants = async (): Promise<Plant[]> => {
+  const user = auth.currentUser;
+  if (!user) {
+    console.error("No user logged in.");
+    return [];
+  }
+
+  const plantsCollectionRef = collection(db, "plants");
+  const q = query(plantsCollectionRef, where("userId", "==", user.uid));
+  const querySnapshot = await getDocs(q);
+
+  const plants: Plant[] = [];
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    plants.push({
+      id: doc.id,
+      name: data.name,
+      species: data.species,
+      careNotes: data.careNotes,
+      // You may need to convert timestamps to dates here
+      lastWatered: data.lastWatered ? data.lastWatered.toDate() : null,
+      lastFertilized: data.lastFertilized ? data.lastFertilized.toDate() : null,
+      userId: data.userId,
+      imageUrl: data.imageUrl || null, // Ensure you are retrieving the imageUrl
+    });
+  });
+
+  return plants;
 };
 
 // Update an existing plant

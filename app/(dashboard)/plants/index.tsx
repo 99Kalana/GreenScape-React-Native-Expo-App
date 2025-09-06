@@ -5,7 +5,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
 import { onSnapshot, query, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
 import { auth } from '@/firebase';
 
 const PlantsScreen = () => {
@@ -108,10 +108,31 @@ const PlantsScreen = () => {
                 ) : (
                     filteredPlants.map((plant) => (
                         <View key={plant.id} className="bg-white p-4 mb-3 rounded-lg mx-4 border border-gray-200 shadow-md">
-                            <Text className="text-xl font-bold text-green-700">{plant.name}</Text>
-                            <Text className="text-sm text-gray-600 mb-2">Species: {plant.species}</Text>
-                            <Text className="text-sm text-gray-600 mb-2">Last Watered: {plant.lastWatered?.toLocaleDateString()}</Text>
-                            <Text className="text-sm text-gray-600 mb-2">Last Fertilized: {plant.lastFertilized?.toLocaleDateString()}</Text>
+
+                            {/* The main flexbox container */}
+                            <View className="flex-row items-center">
+                            {/* Container for the text details (now on the left) */}
+                            <View className="flex-1">
+                                <Text className="text-xl font-bold text-green-700">{plant.name}</Text>
+                                <Text className="text-sm text-gray-600 mb-2">Species: {plant.species}</Text>
+                                <Text className="text-sm text-gray-600 mb-2">Last Watered: {plant.lastWatered?.toLocaleDateString()}</Text>
+                                <Text className="text-sm text-gray-600 mb-2">Last Fertilized: {plant.lastFertilized?.toLocaleDateString()}</Text>
+                            </View>
+                            
+                            {/* The image (now on the right) */}
+                            {plant.imageUrl && (
+                                <Image
+                                source={{ uri: plant.imageUrl }}
+                                style={{
+                                    width: 100, // Fixed width for a smaller thumbnail
+                                    height: 100, // Fixed height
+                                    borderRadius: 8,
+                                    marginLeft: 16, // Add space to the left of the image
+                                    resizeMode: "cover",
+                                }}
+                                />
+                            )}
+                            </View>
 
                             <View className="flex-row mt-2">
                                 <TouchableOpacity
