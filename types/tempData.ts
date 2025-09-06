@@ -1,4 +1,3 @@
-// types/tempData.ts
 export const identifiedPlantData = {
   scientificName: null as string | null,
   commonName: null as string | null,
