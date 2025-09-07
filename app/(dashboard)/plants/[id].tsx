@@ -7,6 +7,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import * as ImagePicker from "expo-image-picker"
 import { identifiedPlantData } from '../../../types/tempData';
+import * as Notifications from 'expo-notifications';
 
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
