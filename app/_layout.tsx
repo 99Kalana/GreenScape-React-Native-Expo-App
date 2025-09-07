@@ -6,6 +6,11 @@ import "./../global.css";
 import * as Notifications from 'expo-notifications';
 
 const RootLayout = () => {
+
+    const router = useRouter();
+
+    
+
     return (
         <LoaderProvider>
             <AuthProvider>
