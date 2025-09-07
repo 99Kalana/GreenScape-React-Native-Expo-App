@@ -1,5 +1,5 @@
 import React from 'react';
-import { Slot, Stack } from 'expo-router';
+import { Slot, Stack, useRouter } from 'expo-router';
 import { AuthProvider } from '@/context/AuthContext';
 import { LoaderProvider } from '@/context/LoaderContext';
 import "./../global.css";
