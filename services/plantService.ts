@@ -16,14 +16,27 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 export const plantsRef = collection(db, "plants");
 
 // Create a new plant
+// export const createPlant = async (plantData: Omit<Plant, 'id'>) => {
+//     const userId = auth.currentUser?.uid;
+//     if (!userId) {
+//         throw new Error("User not authenticated.");
+//     }
+//     const dataWithUserId = { ...plantData, userId };
+//     await addDoc(plantsRef, dataWithUserId);
+// };
+
 export const createPlant = async (plantData: Omit<Plant, 'id'>) => {
     const userId = auth.currentUser?.uid;
     if (!userId) {
         throw new Error("User not authenticated.");
     }
     const dataWithUserId = { ...plantData, userId };
-    await addDoc(plantsRef, dataWithUserId);
+    
+    // Key Change: Capture the docRef and return it
+    const docRef = await addDoc(plantsRef, dataWithUserId);
+    return docRef;
 };
+
 
 // Get a single plant by ID
 export const getPlantById = async (id: string) => {

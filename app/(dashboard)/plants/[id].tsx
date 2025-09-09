@@ -8,55 +8,90 @@ import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } fro
 import * as ImagePicker from "expo-image-picker"
 import { identifiedPlantData } from '../../../types/tempData';
 import * as Notifications from 'expo-notifications';
-
-
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { DateTriggerInput } from 'expo-notifications';
+
 
 const PlantFormScreen = () => {
-    //const { id } = useLocalSearchParams<{ id?: string }>();
     const { id, species: initialSpecies, imageUri: initialImageUri } = useLocalSearchParams<{ id?: string; species?: string; imageUri?: string }>();
     const isNew = !id || id === 'new';
     const [name, setName] = useState("");
     const [species, setSpecies] = useState("");
-    // const [lastWatered, setLastWatered] = useState(new Date().toISOString().slice(0, 10)); // YYYY-MM-DD format
-    // const [lastFertilized, setLastFertilized] = useState(new Date().toISOString().slice(0, 10));
     const [lastWatered, setLastWatered] = useState("");
     const [lastFertilized, setLastFertilized] = useState("");
     const [careNotes, setCareNotes] = useState("");
-    const [imageUri, setImageUri] = useState<string | null>(null); // State for the image URI
+    const [imageUri, setImageUri] = useState<string | null>(null);
     const router = useRouter();
     const { showLoader, hideLoader } = useLoader();
 
-    // Use useFocusEffect to retrieve and handle data from the temporary store
+    // --- NEW CODE START ---
+
+    const updatePlantDataFromNotification = async (plantId: string, type: 'watering' | 'fertilizing') => {
+        Alert.alert(
+            "Confirm Action",
+            `Did you just ${type === 'watering' ? 'water' : 'fertilize'} your plant?`,
+            [
+                {
+                    text: "No",
+                    style: "cancel"
+                },
+                {
+                    text: "Yes",
+                    onPress: async () => {
+                        try {
+                            const updateData = type === 'watering' 
+                                ? { lastWatered: new Date() } 
+                                : { lastFertilized: new Date() };
+        
+                            await updatePlant(plantId, updateData);
+                            console.log(`Plant ${plantId} data updated: ${type} to ${new Date()}`);
+                            router.push(`/plants/${plantId}`);
+                        } catch (error) {
+                            console.error("Failed to update plant from notification:", error);
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    useEffect(() => {
+        const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+            const { plantId, type } = response.notification.request.content.data;
+            
+            updatePlantDataFromNotification(plantId as string, type as 'watering' | 'fertilizing');
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, []);
+    
+    // --- NEW CODE END ---
+
     useFocusEffect(
         useCallback(() => {
-        if (isNew) {
-            if (identifiedPlantData.scientificName) {
-            // Always set the Species to the scientific name
-            setSpecies(identifiedPlantData.scientificName);
-            
-            // Set the Plant Name to the common name, with scientific as a fallback
-            if (identifiedPlantData.commonName && identifiedPlantData.commonName !== 'N/A') {
-                setName(identifiedPlantData.commonName.split(',')[0].trim());
-            } else {
-                setName(identifiedPlantData.scientificName);
+            if (isNew) {
+                if (identifiedPlantData.scientificName) {
+                    setSpecies(identifiedPlantData.scientificName);
+                    if (identifiedPlantData.commonName && identifiedPlantData.commonName !== 'N/A') {
+                        setName(identifiedPlantData.commonName.split(',')[0].trim());
+                    } else {
+                        setName(identifiedPlantData.scientificName);
+                    }
+                }
+                if (identifiedPlantData.imageUri) {
+                    setImageUri(identifiedPlantData.imageUri);
+                }
+                identifiedPlantData.scientificName = null;
+                identifiedPlantData.commonName = null;
+                identifiedPlantData.genus = null;
+                identifiedPlantData.family = null;
+                identifiedPlantData.imageUri = null;
             }
-            }
-            if (identifiedPlantData.imageUri) {
-            setImageUri(identifiedPlantData.imageUri);
-            }
-            
-            // Clear the data after use to avoid re-population
-            identifiedPlantData.scientificName = null;
-            identifiedPlantData.commonName = null;
-            identifiedPlantData.genus = null;
-            identifiedPlantData.family = null;
-            identifiedPlantData.imageUri = null;
-        }
         }, [isNew])
     );
 
-    // Request permissions on component mount
     useEffect(() => {
         (async () => {
             const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -66,7 +101,6 @@ const PlantFormScreen = () => {
         })();
     }, []);
 
-    
     useEffect(() => {
         const loadPlantData = async () => {
             if (!isNew && id) {
@@ -79,7 +113,7 @@ const PlantFormScreen = () => {
                         if (plant.lastWatered) setLastWatered(plant.lastWatered.toISOString().slice(0, 10));
                         if (plant.lastFertilized) setLastFertilized(plant.lastFertilized.toISOString().slice(0, 10));
                         if (plant.careNotes) setCareNotes(plant.careNotes);
-                        if (plant.imageUrl) setImageUri(plant.imageUrl); // Load existing image
+                        if (plant.imageUrl) setImageUri(plant.imageUrl);
                     }
                 } catch (error) {
                     console.error("Failed to load plant data:", error);
@@ -94,7 +128,6 @@ const PlantFormScreen = () => {
 
     const handlePickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
-            // This is the correct, future-proof syntax
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [4, 3],
@@ -108,7 +141,6 @@ const PlantFormScreen = () => {
 
     const handleTakePhoto = async () => {
         const result = await ImagePicker.launchCameraAsync({
-            // Also apply the fix here for consistency
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [4, 3],
@@ -126,16 +158,13 @@ const PlantFormScreen = () => {
             return;
         }
 
-        // Regular expression to validate YYYY-MM-DD format
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
-        // Validate Last Watered date
         if (lastWatered.trim() !== '' && !dateRegex.test(lastWatered)) {
             Alert.alert("Invalid Date Format", "Please use YYYY-MM-DD format for 'Last Watered'.");
             return;
         }
 
-        // Validate Last Fertilized date
         if (lastFertilized.trim() !== '' && !dateRegex.test(lastFertilized)) {
             Alert.alert("Invalid Date Format", "Please use YYYY-MM-DD format for 'Last Fertilized'.");
             return;
@@ -143,40 +172,91 @@ const PlantFormScreen = () => {
 
         try {
             showLoader();
-
             let imageUrl = null;
             if (imageUri) {
-                // Upload the image to Firebase Storage and get the download URL
                 imageUrl = await uploadImageAsync(imageUri);
             }
-
-            // Use the current date as a default if the input fields are empty
             const wateredDate = lastWatered.trim() !== '' ? new Date(lastWatered) : new Date();
             const fertilizedDate = lastFertilized.trim() !== '' ? new Date(lastFertilized) : new Date();
-
             const plantData = {
                 name,
                 species,
                 lastWatered: wateredDate,
                 lastFertilized: fertilizedDate,
                 careNotes,
-                imageUrl // Include the image URL in the plant data
+                imageUrl
             };
 
+            let currentPlantId: string;
             if (isNew) {
-                await createPlant(plantData as Omit<Plant, 'id'>);
+                const docRef = await createPlant(plantData as Omit<Plant, 'id'>);
+                currentPlantId = docRef.id;
             } else {
-                // Get the current user's ID
+                if (!id) throw new Error("Plant ID not found for update.");
                 const userId = auth.currentUser?.uid;
                 if (!userId) {
                     throw new Error("User not authenticated.");
                 }
-
-                // Include the userId in the data object before updating
                 const dataToUpdate = { ...plantData, userId };
                 await updatePlant(id, dataToUpdate);
+                currentPlantId = id;
             }
+
+            // Request permissions before scheduling notifications
+            const { status } = await Notifications.getPermissionsAsync();
+            if (status !== 'granted') {
+                await Notifications.requestPermissionsAsync();
+            }
+
+            // --- Correct way to cancel notifications for a specific plant ---
+            const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+            for (const notification of scheduledNotifications) {
+                // Check if the notification's data matches the current plantId
+                if (notification.content.data && notification.content.data.plantId === currentPlantId) {
+                    await Notifications.cancelScheduledNotificationAsync(notification.identifier);
+                }
+            }
+
+            // Schedule a watering notification
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title: "🌱 Plant Care Reminder",
+                    body: `Time to water your ${name}!`,
+                    data: { plantId: currentPlantId, type: 'watering' },
+                },
+                //@ts-ignore
+                trigger: {
+                    type: 'date',
+                    date: new Date(Date.now() + 2 * 60 * 1000), // 2 minutes from now
+                },
+            });
+
+            // Schedule a fertilizing notification
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title: "🌱 Plant Care Reminder",
+                    body: `Time to fertilize your ${name}!`,
+                    data: { plantId: currentPlantId, type: 'fertilizing' },
+                },
+                //@ts-ignore
+                trigger: {
+                    type: 'date',
+                    date: new Date(Date.now() + 2 * 60 * 1000), // 2 minutes from now
+                },
+            });
+
+            console.log("Notifications scheduled successfully.");
+            const newScheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+            console.log("Current scheduled notifications:", newScheduledNotifications);
+
+            // Add a loop to show the correct data structure
+            newScheduledNotifications.forEach(notification => {
+                console.log("Notification ID:", notification.identifier);
+                console.log("Notification Data:", notification.content.data); // Correctly access the 'data' field
+            });
+
             router.back();
+
         } catch (err) {
             console.error(`Error ${isNew ? "saving" : "updating"} plant:`, err);
             Alert.alert("Error", `Failed to ${isNew ? "save" : "update"} plant.`);
@@ -191,7 +271,6 @@ const PlantFormScreen = () => {
                 {isNew ? "Add New Plant" : "Edit Plant"}
             </Text>
 
-            {/* Image Preview and Buttons */}
             <View className="items-center my-4">
                 {imageUri ? (
                     <Image source={{ uri: imageUri }} style={{ width: 200, height: 200, borderRadius: 12 }} />
