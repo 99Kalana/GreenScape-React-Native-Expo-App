@@ -5,7 +5,7 @@ import React from 'react';
 const tabs = [
     { label: "Home", name: "home", icon: "home" },
     { label: "Plants", name: "plants", icon: "sprout" },
-    { label: "Identify", name: "identify", icon: "camera-iris" },
+    { label: "Identify", name: "identify/index", icon: "camera-iris" },
     { label: "Profile", name: "profile", icon: "account" },
     { label: "Settings", name: "settings", icon: "cog" }
 ];
