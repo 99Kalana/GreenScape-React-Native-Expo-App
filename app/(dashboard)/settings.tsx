@@ -22,7 +22,7 @@ const SettingItem = ({ icon, label, children, isDarkMode }: { icon: any, label: 
 );
 
 // New custom modal for password prompt
-const PasswordPromptModal = ({ isVisible, onClose, onConfirm, isDarkMode }: { isVisible: boolean, onClose: () => void, onConfirm: (password: string) => void, isDarkMode: boolean }) => {
+const PasswordPromptModal = ({ isVisible, onClose, onConfirm, isDarkMode, getTranslatedText }: { isVisible: boolean, onClose: () => void, onConfirm: (password: string) => void, isDarkMode: boolean, getTranslatedText: (key: string) => string }) => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
@@ -47,13 +47,13 @@ const PasswordPromptModal = ({ isVisible, onClose, onConfirm, isDarkMode }: { is
         >
             <View className="flex-1 justify-center items-center p-5 bg-black bg-opacity-50">
                 <View className={`w-full max-w-sm p-6 rounded-lg shadow-xl ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                    <Text className={`text-xl font-bold mb-4 text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Confirm Deletion</Text>
-                    <Text className={`text-base mb-4 text-center ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Please enter your password to confirm account deletion.</Text>
+                    <Text className={`text-xl font-bold mb-4 text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{getTranslatedText("Confirm Deletion")}</Text>
+                    <Text className={`text-base mb-4 text-center ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{getTranslatedText("Please enter your password to confirm account deletion.")}</Text>
                     <View className="flex-row items-center mb-4">
                         <TextInput
                             className={inputClassName}
                             secureTextEntry={!showPassword}
-                            placeholder="Password"
+                            placeholder={getTranslatedText("Password")}
                             placeholderTextColor={isDarkMode ? '#bbb' : '#888'}
                             value={password}
                             onChangeText={setPassword}
@@ -67,13 +67,13 @@ const PasswordPromptModal = ({ isVisible, onClose, onConfirm, isDarkMode }: { is
                             className="flex-1 py-3 rounded-lg flex items-center justify-center bg-gray-500 mr-2"
                             onPress={handleClose}
                         >
-                            <Text className="text-white font-bold">Cancel</Text>
+                            <Text className="text-white font-bold">{getTranslatedText("Cancel")}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             className="flex-1 py-3 rounded-lg flex items-center justify-center bg-red-700 ml-2"
                             onPress={handleConfirm}
                         >
-                            <Text className="text-white font-bold">Delete</Text>
+                            <Text className="text-white font-bold">{getTranslatedText("Delete")}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -116,6 +116,7 @@ const Settings = () => {
         "Confirm Deletion": { "English": "Confirm Deletion", "Spanish": "Confirmar eliminación", "French": "Confirmer la suppression", "German": "Löschung bestätigen" },
         "This action is irreversible and will permanently delete your account and all associated data. Are you sure?": { "English": "This action is irreversible and will permanently delete your account and all associated data. Are you sure?", "Spanish": "Esta acción es irreversible y eliminará permanentemente su cuenta y todos los datos asociados. ¿Está seguro?", "French": "Cette action est irréversible et supprimera définitivement votre compte et toutes les données associées. Êtes-vous sûr ?", "German": "Diese Aktion ist irreversibel und löscht Ihr Konto und alle zugehörigen Daten endgültig. Sind Sie sicher?" },
         "Please enter your password to confirm account deletion.": { "English": "Please enter your password to confirm account deletion.", "Spanish": "Por favor, introduzca su contraseña para confirmar la eliminación de la cuenta.", "French": "Veuillez entrer votre mot de passe pour confirmer la suppression du compte.", "German": "Bitte geben Sie Ihr Passwort ein, um die Kontolöschung zu bestätigen." },
+        "Password": { "English": "Password", "Spanish": "Contraseña", "French": "Mot de passe", "German": "Passwort" },
         "Incorrect Password": { "English": "Incorrect Password", "Spanish": "Contraseña incorrecta", "French": "Mot de passe incorrect", "German": "Falsches Passwort" },
         "The password you entered is incorrect. Please try again.": { "English": "The password you entered is incorrect. Please try again.", "Spanish": "La contraseña que introdujo es incorrecta. Por favor, inténtelo de nuevo.", "French": "Le mot de passe que vous avez saisi es incorrecto. Veuillez réessayer.", "German": "Das eingegebene Passwort ist falsch. Bitte versuchen Sie es erneut." },
         "Cancel": { "English": "Cancel", "Spanish": "Cancelar", "French": "Annuler", "German": "Abbrechen" },
@@ -330,6 +331,7 @@ const Settings = () => {
                 onClose={() => setShowPasswordPrompt(false)}
                 onConfirm={confirmAndDeleteAccount}
                 isDarkMode={isDarkMode}
+                getTranslatedText={getTranslatedText}
             />
         </SafeAreaView>
     );
