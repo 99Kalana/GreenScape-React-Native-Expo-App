@@ -4,8 +4,12 @@ import { getAuth, updatePassword, EmailAuthProvider, reauthenticateWithCredentia
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useLanguage } from '../../context/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const Profile = () => {
+    const { language } = useLanguage();
+    const { isDarkMode } = useTheme();
     const auth = getAuth();
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -14,6 +18,28 @@ const Profile = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    const translations: { [key: string]: { [lang: string]: string } } = {
+        "Profile": { "English": "Profile", "Spanish": "Perfil", "French": "Profil", "German": "Profil" },
+        "Change Password": { "English": "Change Password", "Spanish": "Cambiar contraseña", "French": "Changer le mot de passe", "German": "Passwort ändern" },
+        "Current Password": { "English": "Current Password", "Spanish": "Contraseña actual", "French": "Mot de passe actuel", "German": "Aktuelles Passwort" },
+        "New Password": { "English": "New Password", "Spanish": "Nueva contraseña", "French": "Nouveau mot de passe", "German": "Neues Passwort" },
+        "Confirm New Password": { "English": "Confirm New Password", "Spanish": "Confirmar nueva contraseña", "French": "Confirmer le nouveau mot de passe", "German": "Neues Passwort bestätigen" },
+        "Updating...": { "English": "Updating...", "Spanish": "Actualizando...", "French": "Mise à jour...", "German": "Aktualisieren..." },
+        "All password fields are required.": { "English": "All password fields are required.", "Spanish": "Todos los campos de contraseña son obligatorios.", "French": "Tous les champs de mot de passe sont obligatoires.", "German": "Alle Passwortfelder sind erforderlich." },
+        "New password must be at least 6 characters long.": { "English": "New password must be at least 6 characters long.", "Spanish": "La nueva contraseña debe tener al menos 6 caracteres.", "French": "Le nouveau mot de passe doit contenir au moins 6 caractères.", "German": "Das neue Passwort muss mindestens 6 Zeichen lang sein." },
+        "New passwords do not match.": { "English": "New passwords do not match.", "Spanish": "Las nuevas contraseñas no coinciden.", "French": "Les nouveaux mots de passe ne correspondent pas.", "German": "Die neuen Passwörter stimmen nicht überein." },
+        "Success": { "English": "Success", "Spanish": "Éxito", "French": "Succès", "German": "Erfolg" },
+        "Password updated successfully!": { "English": "Password updated successfully!", "Spanish": "¡Contraseña actualizada con éxito!", "French": "Mot de passe mis à jour avec succès !", "German": "Passwort erfolgreich aktualisiert!" },
+        "Failed to update password. Please try again.": { "English": "Failed to update password. Please try again.", "Spanish": "No se pudo actualizar la contraseña. Por favor, inténtelo de nuevo.", "French": "Échec de la mise à jour du mot de passe. Veuillez réessayer.", "German": "Passwort konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut." },
+        "Incorrect old password. Please try again.": { "English": "Incorrect old password. Please try again.", "Spanish": "Contraseña anterior incorrecta. Por favor, inténtelo de nuevo.", "French": "Ancien mot de passe incorrect. Veuillez réessayer.", "German": "Altes Passwort ist falsch. Bitte versuchen Sie es erneut." },
+        "Cannot change password for this account type. Please try again.": { "English": "Cannot change password for this account type. Please try again.", "Spanish": "No se puede cambiar la contraseña para este tipo de cuenta. Por favor, inténtelo de nuevo.", "French": "Impossible de changer le mot de passe pour ce type de compte. Veuillez réessayer.", "German": "Passwort kann für diesen Kontotyp nicht geändert werden. Bitte versuchen Sie es erneut." },
+        "Your password has been changed successfully.": { "English": "Your password has been changed successfully.", "Spanish": "Su contraseña ha sido cambiada con éxito.", "French": "Votre mot de passe a été changé avec succès.", "German": "Ihr Passwort wurde erfolgreich geändert." }
+    };
+
+    const getTranslatedText = (key: string) => {
+        return translations[key]?.[language] || key;
+    };
+
     // Handle password change functionality with old password verification
     const handleChangePassword = async () => {
         setError('');
@@ -21,17 +47,17 @@ const Profile = () => {
 
         // Basic validation
         if (!oldPassword || !newPassword || !confirmPassword) {
-            setError('All password fields are required.');
+            setError(getTranslatedText('All password fields are required.'));
             return;
         }
 
         if (newPassword.length < 6) {
-            setError('New password must be at least 6 characters long.');
+            setError(getTranslatedText('New password must be at least 6 characters long.'));
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            setError('New passwords do not match.');
+            setError(getTranslatedText('New passwords do not match.'));
             return;
         }
 
@@ -44,22 +70,22 @@ const Profile = () => {
 
                 // If re-authentication is successful, update the password
                 await updatePassword(auth.currentUser, newPassword);
-                setSuccess('Password updated successfully!');
+                setSuccess(getTranslatedText('Password updated successfully!'));
                 setOldPassword('');
                 setNewPassword('');
                 setConfirmPassword('');
-                Alert.alert("Success", "Your password has been changed successfully.");
+                Alert.alert(getTranslatedText("Success"), getTranslatedText("Your password has been changed successfully."));
             } else {
                 // Handle cases where user is not signed in or has no email
-                setError("Cannot change password for this account type. Please try again.");
+                setError(getTranslatedText("Cannot change password for this account type. Please try again."));
                 router.replace('/(auth)/login');
             }
         } catch (err: any) {
             // Handle Firebase-specific errors
             if (err.code === 'auth/wrong-password') {
-                setError('Incorrect old password. Please try again.');
+                setError(getTranslatedText('Incorrect old password. Please try again.'));
             } else {
-                setError("Failed to update password. Please try again.");
+                setError(getTranslatedText("Failed to update password. Please try again."));
             }
             console.error(err);
         } finally {
@@ -67,40 +93,48 @@ const Profile = () => {
         }
     };
 
+    const containerClassName = isDarkMode ? 'bg-gray-900' : 'bg-white';
+    const cardClassName = isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200';
+    const textClassName = isDarkMode ? 'text-gray-300' : 'text-gray-800';
+    const inputClassName = isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-300' : 'bg-white border-gray-300 text-gray-700';
+
     return (
-        <SafeAreaView className="flex-1 bg-white p-6">
+        <SafeAreaView className={`flex-1 p-6 ${containerClassName}`}>
             <View className="flex-1 justify-start items-center w-full mt-10">
                 <View className="mb-8 items-center">
                     <Ionicons name="person-circle-outline" size={100} color="#22C55E" />
-                    <Text className="text-3xl font-bold text-gray-800 mt-2">Profile</Text>
+                    <Text className={`text-3xl font-bold ${textClassName} mt-2`}>{getTranslatedText("Profile")}</Text>
                     {auth.currentUser && (
-                        <Text className="text-gray-600 mt-1">{auth.currentUser.email}</Text>
+                        <Text className={`text-gray-600 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>{auth.currentUser.email}</Text>
                     )}
                 </View>
 
                 {/* Password Change Form */}
-                <View className="w-full max-w-sm bg-gray-50 p-6 rounded-lg shadow-md border border-gray-200">
-                    <Text className="text-lg font-bold text-gray-800 mb-4">Change Password</Text>
+                <View className={`w-full max-w-sm p-6 rounded-lg shadow-md border ${cardClassName}`}>
+                    <Text className={`text-lg font-bold ${textClassName} mb-4`}>{getTranslatedText("Change Password")}</Text>
                     <TextInput
-                        className="w-full bg-white p-3 rounded-md border border-gray-300 mb-3 text-gray-700 focus:border-green-500"
-                        placeholder="Current Password"
+                        className={`w-full p-3 rounded-md border mb-3 focus:border-green-500 ${inputClassName}`}
+                        placeholder={getTranslatedText("Current Password")}
                         secureTextEntry
                         value={oldPassword}
                         onChangeText={setOldPassword}
+                        placeholderTextColor={isDarkMode ? '#a1a1aa' : '#9ca3af'}
                     />
                     <TextInput
-                        className="w-full bg-white p-3 rounded-md border border-gray-300 mb-3 text-gray-700 focus:border-green-500"
-                        placeholder="New Password"
+                        className={`w-full p-3 rounded-md border mb-3 focus:border-green-500 ${inputClassName}`}
+                        placeholder={getTranslatedText("New Password")}
                         secureTextEntry
                         value={newPassword}
                         onChangeText={setNewPassword}
+                        placeholderTextColor={isDarkMode ? '#a1a1aa' : '#9ca3af'}
                     />
                     <TextInput
-                        className="w-full bg-white p-3 rounded-md border border-gray-300 mb-4 text-gray-700 focus:border-green-500"
-                        placeholder="Confirm New Password"
+                        className={`w-full p-3 rounded-md border mb-4 focus:border-green-500 ${inputClassName}`}
+                        placeholder={getTranslatedText("Confirm New Password")}
                         secureTextEntry
                         value={confirmPassword}
                         onChangeText={setConfirmPassword}
+                        placeholderTextColor={isDarkMode ? '#a1a1aa' : '#9ca3af'}
                     />
                     
                     {error ? (
@@ -117,7 +151,7 @@ const Profile = () => {
                         disabled={isLoading}
                     >
                         <Text className="text-white font-bold text-base">
-                            {isLoading ? 'Updating...' : 'Change Password'}
+                            {isLoading ? getTranslatedText('Updating...') : getTranslatedText('Change Password')}
                         </Text>
                     </TouchableOpacity>
                 </View>
