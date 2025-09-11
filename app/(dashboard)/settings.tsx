@@ -24,10 +24,37 @@ const SettingItem = ({ icon, label, children, isDarkMode }: { icon: any, label: 
 const Settings = () => {
     const auth = getAuth();
     const { isDarkMode, toggleDarkMode } = useTheme();
-    const { language, changeLanguage } = useLanguage();
-    
+    const { language, changeLanguage, availableLanguages } = useLanguage();
+
+    // Translations for the settings page
+    const translations: { [key: string]: { [lang: string]: string } } = {
+        "Settings": { "English": "Settings", "Spanish": "Ajustes", "French": "Paramètres", "German": "Einstellungen" },
+        "Account": { "English": "Account", "Spanish": "Cuenta", "French": "Compte", "German": "Konto" },
+        "Logout": { "English": "Logout", "Spanish": "Cerrar sesión", "French": "Déconnexion", "German": "Abmelden" },
+        "General": { "English": "General", "Spanish": "General", "French": "Général", "German": "Allgemein" },
+        "Dark Mode": { "English": "Dark Mode", "Spanish": "Modo oscuro", "French": "Mode sombre", "German": "Dunkelmodus" },
+        "Language": { "English": "Language", "Spanish": "Idioma", "French": "Langue", "German": "Sprache" },
+        "App Permissions": { "English": "App Permissions", "Spanish": "Permisos de la app", "French": "Autorisations de l'application", "German": "App-Berechtigungen" },
+        "Notifications": { "English": "Notifications", "Spanish": "Notificaciones", "French": "Notifications", "German": "Benachrichtigungen" },
+        "Camera": { "English": "Camera", "Spanish": "Cámara", "French": "Caméra", "German": "Kamera" },
+        "Gallery": { "English": "Gallery", "Spanish": "Galería", "French": "Galerie", "German": "Galerie" },
+        "Granted": { "English": "Granted", "Spanish": "Concedido", "French": "Autorisé", "German": "Gewährt" },
+        "Denied": { "English": "Denied", "Spanish": "Denegado", "French": "Refusé", "German": "Abgelehnt" },
+        "checking...": { "English": "checking...", "Spanish": "comprobando...", "French": "vérification...", "German": "prüfen..." },
+        "Permission Required": { "English": "Permission Required", "Spanish": "Permiso requerido", "French": "Autorisation requise", "German": "Erforderliche Berechtigung" },
+        "Please enable": { "English": "Please enable", "Spanish": "Por favor, habilite", "French": "Veuillez activer", "German": "Bitte aktivieren Sie" },
+        "in your device settings to use this feature.": { "English": "in your device settings to use this feature.", "Spanish": "en la configuración de su dispositivo para usar esta función.", "French": "dans les paramètres de votre appareil pour utiliser cette fonctionnalité.", "German": "in den Geräteeinstellungen, um diese Funktion zu nutzen." },
+        "Open Settings": { "English": "Open Settings", "Spanish": "Abrir ajustes", "French": "Ouvrir les paramètres", "German": "Einstellungen öffnen" },
+        "Logout Failed": { "English": "Logout Failed", "Spanish": "Fallo al cerrar sesión", "French": "Échec de la déconnexion", "German": "Abmeldung fehlgeschlagen" },
+        "There was a problem logging you out. Please try again.": { "English": "There was a problem logging you out. Please try again.", "Spanish": "Hubo un problema al cerrar su sesión. Por favor, inténtelo de nuevo.", "French": "Il y a eu un problème lors de la déconnexion. Veuillez réessayer.", "German": "Es gab ein Problem beim Abmelden. Bitte versuchen Sie es erneut." }
+    };
+
+    const getTranslatedText = (key: string) => {
+        return translations[key]?.[language] || key;
+    };
+
     // State for notifications permission
-    const [notificationStatus, setNotificationStatus] = useState('checking...');
+    const [notificationStatus, setNotificationStatus] = useState(getTranslatedText('checking...'));
 
     // Permissions hooks for camera and gallery
     const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -37,7 +64,7 @@ const Settings = () => {
     useEffect(() => {
         (async () => {
             const { status } = await Notifications.getPermissionsAsync();
-            setNotificationStatus(status === 'granted' ? 'Granted' : 'Denied');
+            setNotificationStatus(getTranslatedText(status === 'granted' ? 'Granted' : 'Denied'));
         })();
     }, []);
 
@@ -52,17 +79,17 @@ const Settings = () => {
                 break;
             case 'notifications':
                 const { status } = await Notifications.requestPermissionsAsync();
-                setNotificationStatus(status === 'granted' ? 'Granted' : 'Denied');
+                setNotificationStatus(getTranslatedText(status === 'granted' ? 'Granted' : 'Denied'));
                 if (status === 'granted') return;
                 break;
         }
 
         if (permission?.status !== 'granted') {
             Alert.alert(
-                "Permission Required",
-                `Please enable ${type} permissions in your device settings to use this feature.`,
+                getTranslatedText("Permission Required"),
+                `${getTranslatedText("Please enable")} ${getTranslatedText(type)} ${getTranslatedText("in your device settings to use this feature.")}`,
                 [
-                    { text: "Open Settings", onPress: () => Linking.openSettings() }
+                    { text: getTranslatedText("Open Settings"), onPress: () => Linking.openSettings() }
                 ]
             );
         }
@@ -74,13 +101,8 @@ const Settings = () => {
             router.replace('/(auth)/login');
         } catch (error) {
             console.error("Logout failed:", error);
-            Alert.alert("Logout Failed", "There was a problem logging you out. Please try again.");
+            Alert.alert(getTranslatedText("Logout Failed"), getTranslatedText("There was a problem logging you out. Please try again."));
         }
-    };
-
-    const handleLanguageChange = () => {
-        const newLanguage = language === 'English' ? 'Spanish' : 'English';
-        changeLanguage(newLanguage);
     };
 
     const containerClassName = isDarkMode ? 'bg-gray-900' : 'bg-white';
@@ -89,8 +111,8 @@ const Settings = () => {
     const subTextClassName = isDarkMode ? 'text-gray-400' : 'text-gray-600';
     
     const getPermissionStatus = (permission: { status: string } | null | undefined) => {
-        if (!permission) return 'checking...';
-        return permission.status === 'granted' ? 'Granted' : 'Denied';
+        if (!permission) return getTranslatedText('checking...');
+        return getTranslatedText(permission.status === 'granted' ? 'Granted' : 'Denied');
     };
 
     return (
@@ -99,29 +121,29 @@ const Settings = () => {
                 <View className="flex-1 justify-start items-center w-full mt-10">
                     <View className="mb-8 items-center">
                         <Ionicons name="settings-outline" size={100} color={isDarkMode ? '#22C55E' : '#22C55E'} />
-                        <Text className={`text-3xl font-bold mt-2 ${textClassName}`}>Settings</Text>
+                        <Text className={`text-3xl font-bold mt-2 ${textClassName}`}>{getTranslatedText("Settings")}</Text>
                     </View>
 
                     {/* Account Section */}
                     <View className={`w-full max-w-sm p-6 rounded-lg shadow-md border ${cardClassName} mb-6`}>
-                        <Text className={`text-lg font-bold mb-4 ${textClassName}`}>Account</Text>
+                        <Text className={`text-lg font-bold mb-4 ${textClassName}`}>{getTranslatedText("Account")}</Text>
                         <TouchableOpacity
                             className="w-full py-3 rounded-lg flex items-center justify-center bg-red-500 shadow-md"
                             onPress={handleLogout}
                         >
-                            <Text className="text-white font-bold text-base">Logout</Text>
+                            <Text className="text-white font-bold text-base">{getTranslatedText("Logout")}</Text>
                         </TouchableOpacity>
                     </View>
 
                     {/* General Section */}
                     <View className={`w-full max-w-sm p-6 rounded-lg shadow-md border ${cardClassName} mb-6`}>
-                        <Text className={`text-lg font-bold mb-2 ${textClassName}`}>General</Text>
+                        <Text className={`text-lg font-bold mb-2 ${textClassName}`}>{getTranslatedText("General")}</Text>
                         
                         {/* Dark Mode */}
                         <View className={`flex-row items-center justify-between py-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                             <View className="flex-row items-center">
                                 <Ionicons name="moon-outline" size={24} color={isDarkMode ? '#bbb' : '#555'} />
-                                <Text className={`ml-4 text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>Dark Mode</Text>
+                                <Text className={`ml-4 text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{getTranslatedText("Dark Mode")}</Text>
                             </View>
                             <Switch
                                 trackColor={{ false: "#ccc", true: "#81b0ff" }}
@@ -132,39 +154,40 @@ const Settings = () => {
                         </View>
 
                         {/* Language Preference */}
-                        <TouchableOpacity onPress={handleLanguageChange}>
-                            <View className={`flex-row items-center justify-between py-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                                <View className="flex-row items-center">
-                                    <Ionicons name="language-outline" size={24} color={isDarkMode ? '#bbb' : '#555'} />
-                                    <Text className={`ml-4 text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>Language</Text>
-                                </View>
-                                <View className="flex-row items-center">
-                                    <Text className={`mr-2 ${subTextClassName}`}>{language}</Text>
-                                    <Ionicons name="chevron-forward-outline" size={18} color={isDarkMode ? '#aaa' : '#555'} />
-                                </View>
+                        <SettingItem icon="language-outline" label={getTranslatedText("Language")} isDarkMode={isDarkMode}>
+                            <View className="flex-col items-end">
+                                {availableLanguages.map(lang => (
+                                    <TouchableOpacity 
+                                        key={lang} 
+                                        onPress={() => changeLanguage(lang)} 
+                                        className="py-1"
+                                    >
+                                        <Text className={`text-base ${language === lang ? 'font-bold text-green-500' : subTextClassName}`}>{lang}</Text>
+                                    </TouchableOpacity>
+                                ))}
                             </View>
-                        </TouchableOpacity>
+                        </SettingItem>
                     </View>
 
                     {/* Permissions Section */}
                     <View className={`w-full max-w-sm p-6 rounded-lg shadow-md border ${cardClassName}`}>
-                        <Text className={`text-lg font-bold mb-2 ${textClassName}`}>App Permissions</Text>
+                        <Text className={`text-lg font-bold mb-2 ${textClassName}`}>{getTranslatedText("App Permissions")}</Text>
 
                         <TouchableOpacity onPress={() => requestPermission('notifications')}>
-                            <SettingItem icon="notifications-outline" label="Notifications" isDarkMode={isDarkMode}>
-                                <Text className={`text-sm ${notificationStatus === 'Granted' ? 'text-green-500' : 'text-red-500'}`}>{notificationStatus}</Text>
+                            <SettingItem icon="notifications-outline" label={getTranslatedText("Notifications")} isDarkMode={isDarkMode}>
+                                <Text className={`text-sm ${notificationStatus === getTranslatedText('Granted') ? 'text-green-500' : 'text-red-500'}`}>{notificationStatus}</Text>
                             </SettingItem>
                         </TouchableOpacity>
 
                         <TouchableOpacity onPress={() => requestPermission('camera')}>
-                            <SettingItem icon="camera-outline" label="Camera" isDarkMode={isDarkMode}>
-                                <Text className={`text-sm ${getPermissionStatus(cameraPermission) === 'Granted' ? 'text-green-500' : 'text-red-500'}`}>{getPermissionStatus(cameraPermission)}</Text>
+                            <SettingItem icon="camera-outline" label={getTranslatedText("Camera")} isDarkMode={isDarkMode}>
+                                <Text className={`text-sm ${getPermissionStatus(cameraPermission) === getTranslatedText('Granted') ? 'text-green-500' : 'text-red-500'}`}>{getPermissionStatus(cameraPermission)}</Text>
                             </SettingItem>
                         </TouchableOpacity>
 
                         <TouchableOpacity onPress={() => requestPermission('gallery')}>
-                            <SettingItem icon="image-outline" label="Gallery" isDarkMode={isDarkMode}>
-                                <Text className={`text-sm ${getPermissionStatus(galleryPermission) === 'Granted' ? 'text-green-500' : 'text-red-500'}`}>{getPermissionStatus(galleryPermission)}</Text>
+                            <SettingItem icon="image-outline" label={getTranslatedText("Gallery")} isDarkMode={isDarkMode}>
+                                <Text className={`text-sm ${getPermissionStatus(galleryPermission) === getTranslatedText('Granted') ? 'text-green-500' : 'text-red-500'}`}>{getPermissionStatus(galleryPermission)}</Text>
                             </SettingItem>
                         </TouchableOpacity>
                     </View>
