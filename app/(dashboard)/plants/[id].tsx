@@ -44,10 +44,10 @@ const PlantFormScreen = () => {
         "Validation": { "English": "Validation", "Spanish": "Validación", "French": "Validation", "German": "Validierung" },
         "Name and Species are required.": { "English": "Name and Species are required.", "Spanish": "El nombre y la especie son obligatorios.", "French": "Le nom et l'espèce sont obligatoires.", "German": "Name und Spezies sind erforderlich." },
         "Invalid Date Format": { "English": "Invalid Date Format", "Spanish": "Formato de fecha no válido", "French": "Format de date non valide", "German": "Ungültiges Datumsformat" },
-        "Please use YYYY-MM-DD format for 'Last Watered'.": { "English": "Please use YYYY-MM-DD format for 'Last Watered'.", "Spanish": "Por favor, use el formato AAAA-MM-DD para 'Última vez regada'.", "French": "Veuillez utiliser le format AAAA-MM-DD pour 'Dernier arrosage'.", "German": "Bitte verwenden Sie das Format JJJJ-MM-TT für 'Zuletzt gegossen'." },
+        "Please use YYYY-MM-DD format for 'Last Watered'.": { "English": "Please use YYYY-MM-DD format for 'Last Watered'.", "Spanish": "Por favor, use el formato AAAA-MM-DD para 'Última vez regada'.", "French": "Veuillez utiliser le format AAAA-MM-DD para 'Dernier arrosage'.", "German": "Bitte verwenden Sie das Format JJJJ-MM-TT für 'Zuletzt gegossen'." },
         "Please use YYYY-MM-DD format for 'Last Fertilized'.": { "English": "Please use YYYY-MM-DD format for 'Last Fertilized'.", "Spanish": "Por favor, use el formato AAAA-MM-DD para 'Última vez fertilizada'.", "French": "Veuillez utiliser le format AAAA-MM-DD pour 'Dernière fertilisation'.", "German": "Bitte verwenden Sie das Format JJJJ-MM-TT für 'Zuletzt gedüngt'." },
         "Error": { "English": "Error", "Spanish": "Error", "French": "Erreur", "German": "Fehler" },
-        "Failed to load plant data.": { "English": "Failed to load plant data.", "Spanish": "No se pudieron cargar los datos de la planta.", "French": "Échec du chargement des données de la plante.", "German": "Fehler beim Laden der Pflanzendaten." },
+        "Failed to load plant data.": { "English": "Failed to load plant data.", "Spanish": "No se pudieron cargar los datos de la planta.", "French": "Échec du chargement des données de la planta.", "German": "Fehler beim Laden der Pflanzendaten." },
         "Permission denied": { "English": "Permission denied", "Spanish": "Permiso denegado", "French": "Permission refusée", "German": "Zugriff verweigert" },
         "Sorry, we need camera roll permissions to make this work!": { "English": "Sorry, we need camera roll permissions to make this work!", "Spanish": "Lo sentimos, necesitamos permisos de la cámara para que esto funcione.", "French": "Désolé, nous avons besoin d'accéder à la pellicule pour que cela fonctionne !", "German": "Entschuldigung, wir benötigen Kamerarollen-Berechtigungen, damit dies funktioniert!" },
         "Failed to save plant.": { "English": "Failed to save plant.", "Spanish": "No se pudo guardar la planta.", "French": "Échec de la sauvegarde de la plante.", "German": "Fehler beim Speichern der Pflanze." },
@@ -63,8 +63,6 @@ const PlantFormScreen = () => {
         return translations[key]?.[language] || key;
     };
 
-
-    // --- NEW CODE START ---
 
     const updatePlantDataFromNotification = async (plantId: string, type: 'watering' | 'fertilizing') => {
         Alert.alert(
@@ -82,7 +80,7 @@ const PlantFormScreen = () => {
                             const updateData = type === 'watering'
                                 ? { lastWatered: new Date() }
                                 : { lastFertilized: new Date() };
-        
+            
                             await updatePlant(plantId, updateData);
                             console.log(`Plant ${plantId} data updated: ${type} to ${new Date()}`);
                             router.push(`/plants/${plantId}`);
@@ -107,8 +105,6 @@ const PlantFormScreen = () => {
         };
     }, []);
     
-    // --- NEW CODE END ---
-
     useFocusEffect(
         useCallback(() => {
             if (isNew) {
@@ -242,22 +238,18 @@ const PlantFormScreen = () => {
                 currentPlantId = id;
             }
 
-            // Request permissions before scheduling notifications
             const { status } = await Notifications.getPermissionsAsync();
             if (status !== 'granted') {
                 await Notifications.requestPermissionsAsync();
             }
 
-            // --- Correct way to cancel notifications for a specific plant ---
             const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
             for (const notification of scheduledNotifications) {
-                // Check if the notification's data matches the current plantId
                 if (notification.content.data && notification.content.data.plantId === currentPlantId) {
                     await Notifications.cancelScheduledNotificationAsync(notification.identifier);
                 }
             }
 
-            // Schedule a watering notification
             await Notifications.scheduleNotificationAsync({
                 content: {
                     title: "🌱 Plant Care Reminder",
@@ -271,7 +263,6 @@ const PlantFormScreen = () => {
                 },
             });
 
-            // Schedule a fertilizing notification
             await Notifications.scheduleNotificationAsync({
                 content: {
                     title: "🌱 Plant Care Reminder",
@@ -289,10 +280,9 @@ const PlantFormScreen = () => {
             const newScheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
             console.log("Current scheduled notifications:", newScheduledNotifications);
 
-            // Add a loop to show the correct data structure
             newScheduledNotifications.forEach(notification => {
                 console.log("Notification ID:", notification.identifier);
-                console.log("Notification Data:", notification.content.data); // Correctly access the 'data' field
+                console.log("Notification Data:", notification.content.data);
             });
 
             router.back();
@@ -305,81 +295,117 @@ const PlantFormScreen = () => {
         }
     };
 
+    const containerClassName = isDarkMode ? 'bg-gray-900' : 'bg-gray-100';
+    const cardClassName = isDarkMode ? 'bg-gray-800' : 'bg-white';
+    const headerTextClassName = isDarkMode ? 'text-green-400' : 'text-green-700';
+    const labelClassName = isDarkMode ? 'text-gray-300' : 'text-gray-700';
+    const inputClassName = isDarkMode ? 'bg-gray-700 text-white placeholder-gray-400' : 'bg-gray-200 text-gray-800 placeholder-gray-500';
+    const buttonClassName = isDarkMode ? 'bg-green-600' : 'bg-green-500';
+    const imageContainerClassName = isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-200 border-gray-300';
+    const buttonGroupClassName = isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-200 border-gray-300';
+    const buttonTextClassName = isDarkMode ? 'text-white' : 'text-gray-700';
+    const buttonBaseClassName = 'rounded-full px-4 py-2 flex-1 items-center';
+
     return (
-        <ScrollView className={`flex-1 w-full p-5 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
-            <Text className={`text-3xl font-bold text-center mt-5 mb-4 ${isDarkMode ? 'text-green-500' : 'text-green-700'}`}>
-                {isNew ? getTranslatedText("Add New Plant") : getTranslatedText("Edit Plant")}
-            </Text>
-
-            <View className="items-center my-4">
-                {imageUri ? (
-                    <Image source={{ uri: imageUri }} style={{ width: 200, height: 200, borderRadius: 12 }} />
-                ) : (
-                    <View className={`w-52 h-52 rounded-xl items-center justify-center ${isDarkMode ? 'bg-gray-700' : 'bg-gray-300'}`}>
-                        <Text className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{getTranslatedText("No Image")}</Text>
-                    </View>
-                )}
-                <View className="flex-row mt-4">
-                    <TouchableOpacity
-                        className={`rounded-md px-4 py-2 mr-2 ${isDarkMode ? 'bg-blue-600' : 'bg-blue-500'}`}
-                        onPress={handlePickImage}
-                    >
-                        <Text className="text-white font-semibold">{getTranslatedText("Pick Image")}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        className={`rounded-md px-4 py-2 ${isDarkMode ? 'bg-blue-600' : 'bg-blue-500'}`}
-                        onPress={handleTakePhoto}
-                    >
-                        <Text className="text-white font-semibold">{getTranslatedText("Take Photo")}</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-
-            <TextInput
-                placeholder={getTranslatedText("Plant Name")}
-                placeholderTextColor={isDarkMode ? 'rgb(107, 114, 128)' : 'rgb(156, 163, 175)'}
-                className={`border p-3 my-2 rounded-md ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-400 text-gray-800'}`}
-                value={name}
-                onChangeText={setName}
-            />
-            <TextInput
-                placeholder={getTranslatedText("Species")}
-                placeholderTextColor={isDarkMode ? 'rgb(107, 114, 128)' : 'rgb(156, 163, 175)'}
-                className={`border p-3 my-2 rounded-md ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-400 text-gray-800'}`}
-                value={species}
-                onChangeText={setSpecies}
-            />
-            <TextInput
-                placeholder={getTranslatedText("Last Watered (YYYY-MM-DD)")}
-                placeholderTextColor={isDarkMode ? 'rgb(107, 114, 128)' : 'rgb(156, 163, 175)'}
-                className={`border p-3 my-2 rounded-md ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-400 text-gray-800'}`}
-                value={lastWatered}
-                onChangeText={setLastWatered}
-            />
-            <TextInput
-                placeholder={getTranslatedText("Last Fertilized (YYYY-MM-DD)")}
-                placeholderTextColor={isDarkMode ? 'rgb(107, 114, 128)' : 'rgb(156, 163, 175)'}
-                className={`border p-3 my-2 rounded-md ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-400 text-gray-800'}`}
-                value={lastFertilized}
-                onChangeText={setLastFertilized}
-            />
-            <TextInput
-                placeholder={getTranslatedText("Care Notes (optional)")}
-                placeholderTextColor={isDarkMode ? 'rgb(107, 114, 128)' : 'rgb(156, 163, 175)'}
-                className={`border p-3 my-2 rounded-md ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-400 text-gray-800'}`}
-                value={careNotes}
-                onChangeText={setCareNotes}
-                multiline
-                numberOfLines={4}
-            />
-            <TouchableOpacity
-                className={`rounded-md px-6 py-4 my-4 ${isDarkMode ? 'bg-green-600' : 'bg-green-500'}`}
-                onPress={handleSubmit}
-            >
-                <Text className="text-xl text-white font-bold text-center">
-                    {isNew ? getTranslatedText("Add Plant") : getTranslatedText("Update Plant")}
+        <ScrollView className={`flex-1 w-full p-4 ${containerClassName}`}>
+            <View className={`w-full p-6 rounded-3xl shadow-lg ${cardClassName}`} style={{
+                shadowColor: isDarkMode ? '#000' : '#d1d5db',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.2,
+                shadowRadius: 6,
+                elevation: 8,
+            }}>
+                <Text className={`text-3xl font-bold text-center mb-6 ${headerTextClassName}`}>
+                    {isNew ? getTranslatedText("Add New Plant") : getTranslatedText("Edit Plant")}
                 </Text>
-            </TouchableOpacity>
+
+                <View className="items-center mb-6">
+                    <View className={`w-40 h-40 rounded-full overflow-hidden justify-center items-center mb-4 ${imageContainerClassName} border`}>
+                        {imageUri ? (
+                            <Image source={{ uri: imageUri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                        ) : (
+                            <MaterialIcons name="image" size={60} color={isDarkMode ? '#9CA3AF' : '#6B7280'} />
+                        )}
+                    </View>
+                    <View className="flex-row justify-center w-full">
+                        <TouchableOpacity
+                            className={`flex-1 px-4 py-3 rounded-full mr-2 ${buttonClassName}`}
+                            onPress={handlePickImage}
+                        >
+                            <Text className={`text-center font-semibold ${buttonTextClassName}`}>{getTranslatedText("Pick Image")}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            className={`flex-1 px-4 py-3 rounded-full ml-2 ${buttonClassName}`}
+                            onPress={handleTakePhoto}
+                        >
+                            <Text className={`text-center font-semibold ${buttonTextClassName}`}>{getTranslatedText("Take Photo")}</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                <View className="mb-4">
+                    <Text className={`text-base font-semibold mb-1 ${labelClassName}`}>{getTranslatedText("Plant Name")}</Text>
+                    <TextInput
+                        placeholder={getTranslatedText("Plant Name")}
+                        placeholderTextColor={isDarkMode ? 'rgb(107, 114, 128)' : 'rgb(156, 163, 175)'}
+                        className={`p-4 rounded-xl text-base shadow-sm ${inputClassName}`}
+                        value={name}
+                        onChangeText={setName}
+                    />
+                </View>
+
+                <View className="mb-4">
+                    <Text className={`text-base font-semibold mb-1 ${labelClassName}`}>{getTranslatedText("Species")}</Text>
+                    <TextInput
+                        placeholder={getTranslatedText("Species")}
+                        placeholderTextColor={isDarkMode ? 'rgb(107, 114, 128)' : 'rgb(156, 163, 175)'}
+                        className={`p-4 rounded-xl text-base shadow-sm ${inputClassName}`}
+                        value={species}
+                        onChangeText={setSpecies}
+                    />
+                </View>
+
+                <View className="mb-4">
+                    <Text className={`text-base font-semibold mb-1 ${labelClassName}`}>{getTranslatedText("Last Watered (YYYY-MM-DD)")}</Text>
+                    <TextInput
+                        placeholder={getTranslatedText("Last Watered (YYYY-MM-DD)")}
+                        placeholderTextColor={isDarkMode ? 'rgb(107, 114, 128)' : 'rgb(156, 163, 175)'}
+                        className={`p-4 rounded-xl text-base shadow-sm ${inputClassName}`}
+                        value={lastWatered}
+                        onChangeText={setLastWatered}
+                    />
+                </View>
+
+                <View className="mb-4">
+                    <Text className={`text-base font-semibold mb-1 ${labelClassName}`}>{getTranslatedText("Last Fertilized (YYYY-MM-DD)")}</Text>
+                    <TextInput
+                        placeholder={getTranslatedText("Last Fertilized (YYYY-MM-DD)")}
+                        placeholderTextColor={isDarkMode ? 'rgb(107, 114, 128)' : 'rgb(156, 163, 175)'}
+                        className={`p-4 rounded-xl text-base shadow-sm ${inputClassName}`}
+                        value={lastFertilized}
+                        onChangeText={setLastFertilized}
+                    />
+                </View>
+
+                <View className="mb-6">
+                    <Text className={`text-base font-semibold mb-1 ${labelClassName}`}>{getTranslatedText("Care Notes (optional)")}</Text>
+                    <TextInput
+                        placeholder={getTranslatedText("Care Notes (optional)")}
+                        placeholderTextColor={isDarkMode ? 'rgb(107, 114, 128)' : 'rgb(156, 163, 175)'}
+                        className={`p-4 rounded-xl text-base shadow-sm h-24 ${inputClassName}`}
+                        value={careNotes}
+                        onChangeText={setCareNotes}
+                        multiline
+                    />
+                </View>
+
+                <TouchableOpacity
+                    className={`rounded-full px-6 py-4 items-center justify-center ${buttonClassName}`}
+                    onPress={handleSubmit}
+                >
+                    <Text className="text-xl text-white font-bold">{isNew ? getTranslatedText("Add Plant") : getTranslatedText("Update Plant")}</Text>
+                </TouchableOpacity>
+            </View>
         </ScrollView>
     );
 };

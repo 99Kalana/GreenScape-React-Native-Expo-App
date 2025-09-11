@@ -2,7 +2,7 @@ import { View, Text, Button, Image, ActivityIndicator, Alert, TouchableOpacity, 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { onSnapshot, query, where } from 'firebase/firestore';
+import { onSnapshot, query, where, doc, updateDoc } from 'firebase/firestore';
 import { useLoader } from '@/context/LoaderContext';
 import { deletePlant, plantsRef } from '@/services/plantService';
 import { Plant } from '@/types/plant';
@@ -25,6 +25,8 @@ const PlantsScreen = () => {
         "You have no plants yet. Add one!": { "English": "You have no plants yet. Add one!", "Spanish": "Aún no tienes plantas. ¡Añade una!", "French": "Vous n'avez pas encore de plantes. Ajoutez-en une !", "German": "Sie haben noch keine Pflanzen. Fügen Sie eine hinzu!" },
         "Last Watered": { "English": "Last Watered", "Spanish": "Último riego", "French": "Dernier arrosage", "German": "Zuletzt gegossen" },
         "Last Fertilized": { "English": "Last Fertilized", "Spanish": "Última fertilización", "French": "Dernière fertilisation", "German": "Zuletzt gedüngt" },
+        "Water Now": { "English": "Water Now", "Spanish": "Regar ahora", "French": "Arroser maintenant", "German": "Jetzt gießen" },
+        "Fertilize Now": { "English": "Fertilize Now", "Spanish": "Fertilizar ahora", "French": "Fertiliser maintenant", "German": "Jetzt düngen" },
         "Edit": { "English": "Edit", "Spanish": "Editar", "French": "Modifier", "German": "Bearbeiten" },
         "Delete": { "English": "Delete", "Spanish": "Eliminar", "French": "Supprimer", "German": "Löschen" },
         "Delete Plant": { "English": "Delete Plant", "Spanish": "Eliminar planta", "French": "Supprimer la plante", "German": "Pflanze löschen" },
@@ -32,6 +34,7 @@ const PlantsScreen = () => {
         "Cancel": { "English": "Cancel", "Spanish": "Cancelar", "French": "Annuler", "German": "Abbrechen" },
         "Error": { "English": "Error", "Spanish": "Error", "French": "Erreur", "German": "Fehler" },
         "Failed to delete plant.": { "English": "Failed to delete plant.", "Spanish": "No se pudo eliminar la planta.", "French": "Échec de la suppression de la plante.", "German": "Fehler beim Löschen der Pflanze." },
+        "Failed to update plant.": { "English": "Failed to update plant.", "Spanish": "No se pudo actualizar la planta.", "French": "Échec de la mise à jour de la planta.", "German": "Fehler beim Aktualisieren der Pflanze." },
     };
 
     const getTranslatedText = (key: string) => {
@@ -41,13 +44,16 @@ const PlantsScreen = () => {
     const containerClassName = isDarkMode ? 'bg-gray-900' : 'bg-white';
     const headerTextClassName = isDarkMode ? 'text-green-500' : 'text-green-700';
     const textClassName = isDarkMode ? 'text-gray-300' : 'text-gray-800';
-    const searchInputClassName = isDarkMode ? 'border-gray-600 bg-gray-700 text-gray-300' : 'border-gray-400 bg-white';
     const cardClassName = isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200';
     const cardTitleClassName = isDarkMode ? 'text-green-400' : 'text-green-700';
     const cardSubTextClassName = isDarkMode ? 'text-gray-400' : 'text-gray-600';
     const editButtonColor = isDarkMode ? 'bg-yellow-500' : 'bg-yellow-400';
     const deleteButtonColor = isDarkMode ? 'bg-red-600' : 'bg-red-500';
-
+    const waterButtonColor = isDarkMode ? 'bg-blue-600' : 'bg-blue-500';
+    const fertilizeButtonColor = isDarkMode ? 'bg-green-600' : 'bg-green-500';
+    const searchInputClassName = isDarkMode ? 'border-gray-600 bg-gray-700 text-gray-300' : 'border-gray-300 bg-white';
+    const searchIconColor = isDarkMode ? '#A0AEC0' : '#4A5568';
+    const headerIconColor = isDarkMode ? '#34D399' : '#10B981';
 
     useEffect(() => {
         const userId = auth.currentUser?.uid;
@@ -88,7 +94,6 @@ const PlantsScreen = () => {
         return () => unsubscribe();
     }, []);
 
-    // New: Filter the plants array based on the search query
     const filteredPlants = plants.filter(plant =>
         plant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         plant.species.toLowerCase().includes(searchQuery.toLowerCase())
@@ -114,20 +119,48 @@ const PlantsScreen = () => {
         ]);
     };
 
+    const handleUpdate = async (plantId: string, field: "lastWatered" | "lastFertilized") => {
+        if (!plantId) {
+            console.error("Plant ID is missing.");
+            return;
+        }
+
+        try {
+            showLoader();
+            const plantDocRef = doc(plantsRef, plantId);
+            await updateDoc(plantDocRef, {
+                [field]: new Date(),
+            });
+        } catch (err) {
+            console.error(`Error updating ${field}:`, err);
+            Alert.alert(getTranslatedText("Error"), getTranslatedText("Failed to update plant."));
+        } finally {
+            hideLoader();
+        }
+    };
+
+
     return (
         <View className={`flex-1 w-full ${containerClassName}`}>
-            <Text className={`text-4xl text-center mt-5 mb-3 font-bold ${headerTextClassName}`}>
-                {getTranslatedText("My Plants")}
-            </Text>
+            {/* Title with icon */}
+            <View className="flex-row items-center justify-center mt-10 mb-3">
+                <MaterialIcons name="local-florist" size={40} color={headerIconColor} />
+                <Text className={`text-4xl ml-2 font-bold ${headerTextClassName}`}>
+                    {getTranslatedText("My Plants")}
+                </Text>
+            </View>
 
-            {/* New: Search Input */}
-            <TextInput
-                placeholder={getTranslatedText("Search by name or species...")}
-                placeholderTextColor={isDarkMode ? '#A0AEC0' : '#4A5568'}
-                className={`border p-3 my-2 rounded-md mx-4 ${searchInputClassName}`}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-            />
+            {/* Search Input with icon */}
+            <View className={`flex-row items-center border rounded-full mx-4 p-2 ${searchInputClassName}`}>
+                <Ionicons name="search-outline" size={20} color={searchIconColor} style={{ marginRight: 8 }} />
+                <TextInput
+                    placeholder={getTranslatedText("Search by name or species...")}
+                    placeholderTextColor={searchIconColor}
+                    className={`flex-1 ${textClassName}`}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                />
+            </View>
 
             <View className="absolute bottom-5 right-5 z-10">
                 <Pressable
@@ -147,9 +180,7 @@ const PlantsScreen = () => {
                     filteredPlants.map((plant) => (
                         <View key={plant.id} className={`p-4 mb-3 rounded-lg mx-4 border shadow-md ${cardClassName}`}>
 
-                            {/* The main flexbox container */}
                             <View className="flex-row items-center">
-                                {/* Container for the text details (now on the left) */}
                                 <View className="flex-1">
                                     <Text className={`text-xl font-bold ${cardTitleClassName}`}>{plant.name}</Text>
                                     <Text className={`text-sm mb-2 ${cardSubTextClassName}`}>Species: {plant.species}</Text>
@@ -157,19 +188,42 @@ const PlantsScreen = () => {
                                     <Text className={`text-sm mb-2 ${cardSubTextClassName}`}>{getTranslatedText("Last Fertilized")}: {plant.lastFertilized?.toLocaleDateString()}</Text>
                                 </View>
 
-                                {/* The image (now on the right) */}
                                 {plant.imageUrl && (
                                     <Image
                                         source={{ uri: plant.imageUrl }}
                                         style={{
-                                            width: 100, // Fixed width for a smaller thumbnail
-                                            height: 100, // Fixed height
+                                            width: 100,
+                                            height: 100,
                                             borderRadius: 8,
-                                            marginLeft: 16, // Add space to the left of the image
+                                            marginLeft: 16,
                                             resizeMode: "cover",
                                         }}
                                     />
                                 )}
+                            </View>
+
+                            <View className="flex-row mt-2 items-center">
+                                {/* Water Now Button */}
+                                <TouchableOpacity
+                                    className={`flex-1 px-4 py-2 rounded-md ${waterButtonColor}`}
+                                    onPress={() => { if (plant.id) handleUpdate(plant.id, "lastWatered"); }}
+                                >
+                                    <View className="flex-row items-center justify-center">
+                                        <MaterialIcons name="water-drop" size={20} color="#fff" />
+                                        <Text className="text-white font-semibold ml-2">{getTranslatedText("Water Now")}</Text>
+                                    </View>
+                                </TouchableOpacity>
+
+                                {/* Fertilize Now Button */}
+                                <TouchableOpacity
+                                    className={`flex-1 px-4 py-2 rounded-md ml-2 ${fertilizeButtonColor}`}
+                                    onPress={() => { if (plant.id) handleUpdate(plant.id, "lastFertilized"); }}
+                                >
+                                    <View className="flex-row items-center justify-center">
+                                        <MaterialIcons name="local-florist" size={20} color="#fff" />
+                                        <Text className="text-white font-semibold ml-2">{getTranslatedText("Fertilize Now")}</Text>
+                                    </View>
+                                </TouchableOpacity>
                             </View>
 
                             <View className="flex-row mt-2">
