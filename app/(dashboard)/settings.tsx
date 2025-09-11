@@ -1,6 +1,6 @@
-import { View, Text, TouchableOpacity, Alert, Switch, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, Switch, ScrollView, Modal, TextInput } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { getAuth, signOut } from 'firebase/auth';
+import { getAuth, signOut, deleteUser, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,32 +21,107 @@ const SettingItem = ({ icon, label, children, isDarkMode }: { icon: any, label: 
     </View>
 );
 
+// New custom modal for password prompt
+const PasswordPromptModal = ({ isVisible, onClose, onConfirm, isDarkMode }: { isVisible: boolean, onClose: () => void, onConfirm: (password: string) => void, isDarkMode: boolean }) => {
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+
+    const handleConfirm = () => {
+        onConfirm(password);
+        setPassword('');
+    };
+
+    const handleClose = () => {
+        setPassword('');
+        onClose();
+    };
+
+    const inputClassName = `flex-1 h-12 p-3 rounded-lg border mr-2 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-100 border-gray-300 text-gray-800'}`;
+
+    return (
+        <Modal
+            animationType="fade"
+            transparent={true}
+            visible={isVisible}
+            onRequestClose={handleClose}
+        >
+            <View className="flex-1 justify-center items-center p-5 bg-black bg-opacity-50">
+                <View className={`w-full max-w-sm p-6 rounded-lg shadow-xl ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                    <Text className={`text-xl font-bold mb-4 text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Confirm Deletion</Text>
+                    <Text className={`text-base mb-4 text-center ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Please enter your password to confirm account deletion.</Text>
+                    <View className="flex-row items-center mb-4">
+                        <TextInput
+                            className={inputClassName}
+                            secureTextEntry={!showPassword}
+                            placeholder="Password"
+                            placeholderTextColor={isDarkMode ? '#bbb' : '#888'}
+                            value={password}
+                            onChangeText={setPassword}
+                        />
+                        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={24} color={isDarkMode ? '#bbb' : '#555'} />
+                        </TouchableOpacity>
+                    </View>
+                    <View className="flex-row justify-between mt-4">
+                        <TouchableOpacity
+                            className="flex-1 py-3 rounded-lg flex items-center justify-center bg-gray-500 mr-2"
+                            onPress={handleClose}
+                        >
+                            <Text className="text-white font-bold">Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            className="flex-1 py-3 rounded-lg flex items-center justify-center bg-red-700 ml-2"
+                            onPress={handleConfirm}
+                        >
+                            <Text className="text-white font-bold">Delete</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Modal>
+    );
+};
+
+
 const Settings = () => {
     const auth = getAuth();
     const { isDarkMode, toggleDarkMode } = useTheme();
     const { language, changeLanguage, availableLanguages } = useLanguage();
+    const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
 
     // Translations for the settings page
     const translations: { [key: string]: { [lang: string]: string } } = {
         "Settings": { "English": "Settings", "Spanish": "Ajustes", "French": "Paramètres", "German": "Einstellungen" },
         "Account": { "English": "Account", "Spanish": "Cuenta", "French": "Compte", "German": "Konto" },
         "Logout": { "English": "Logout", "Spanish": "Cerrar sesión", "French": "Déconnexion", "German": "Abmelden" },
+        "Delete Account": { "English": "Delete Account", "Spanish": "Eliminar cuenta", "French": "Supprimer le compte", "German": "Konto löschen" },
         "General": { "English": "General", "Spanish": "General", "French": "Général", "German": "Allgemein" },
         "Dark Mode": { "English": "Dark Mode", "Spanish": "Modo oscuro", "French": "Mode sombre", "German": "Dunkelmodus" },
         "Language": { "English": "Language", "Spanish": "Idioma", "French": "Langue", "German": "Sprache" },
-        "App Permissions": { "English": "App Permissions", "Spanish": "Permisos de la app", "French": "Autorisations de l'application", "German": "App-Berechtigungen" },
+        "App Permissions": { "English": "App Permissions", "Spanish": "Permisos de la app", "French": "Autorizaciones de la aplicación", "German": "App-Berechtigungen" },
         "Notifications": { "English": "Notifications", "Spanish": "Notificaciones", "French": "Notifications", "German": "Benachrichtigungen" },
         "Camera": { "English": "Camera", "Spanish": "Cámara", "French": "Caméra", "German": "Kamera" },
         "Gallery": { "English": "Gallery", "Spanish": "Galería", "French": "Galerie", "German": "Galerie" },
-        "Granted": { "English": "Granted", "Spanish": "Concedido", "French": "Autorisé", "German": "Gewährt" },
-        "Denied": { "English": "Denied", "Spanish": "Denegado", "French": "Refusé", "German": "Abgelehnt" },
-        "checking...": { "English": "checking...", "Spanish": "comprobando...", "French": "vérification...", "German": "prüfen..." },
-        "Permission Required": { "English": "Permission Required", "Spanish": "Permiso requerido", "French": "Autorisation requise", "German": "Erforderliche Berechtigung" },
+        "Granted": { "English": "Granted", "Spanish": "Concedido", "French": "Autorizado", "German": "Gewährt" },
+        "Denied": { "English": "Denied", "Spanish": "Denegado", "French": "Rechazado", "German": "Abgelehnt" },
+        "checking...": { "English": "checking...", "Spanish": "comprobando...", "French": "verificando...", "German": "prüfen..." },
+        "Permission Required": { "English": "Permission Required", "Spanish": "Permiso requerido", "French": "Autorización requerida", "German": "Erforderliche Berechtigung" },
         "Please enable": { "English": "Please enable", "Spanish": "Por favor, habilite", "French": "Veuillez activer", "German": "Bitte aktivieren Sie" },
-        "in your device settings to use this feature.": { "English": "in your device settings to use this feature.", "Spanish": "en la configuración de su dispositivo para usar esta función.", "French": "dans les paramètres de votre appareil pour utiliser cette fonctionnalité.", "German": "in den Geräteeinstellungen, um diese Funktion zu nutzen." },
+        "in your device settings to use this feature.": { "English": "in your device settings to use this feature.", "Spanish": "en la configuración de su dispositivo para usar esta función.", "French": "dans les paramètres de votre appareil para utilizar esta funcionalidad.", "German": "in den Geräteeinstellungen, um diese Funktion zu nutzen." },
         "Open Settings": { "English": "Open Settings", "Spanish": "Abrir ajustes", "French": "Ouvrir les paramètres", "German": "Einstellungen öffnen" },
         "Logout Failed": { "English": "Logout Failed", "Spanish": "Fallo al cerrar sesión", "French": "Échec de la déconnexion", "German": "Abmeldung fehlgeschlagen" },
-        "There was a problem logging you out. Please try again.": { "English": "There was a problem logging you out. Please try again.", "Spanish": "Hubo un problema al cerrar su sesión. Por favor, inténtelo de nuevo.", "French": "Il y a eu un problème lors de la déconnexion. Veuillez réessayer.", "German": "Es gab ein Problem beim Abmelden. Bitte versuchen Sie es erneut." }
+        "There was a problem logging you out. Please try again.": { "English": "There was a problem logging you out. Please try again.", "Spanish": "Hubo un problema al cerrar su sesión. Por favor, inténtelo de nuevo.", "French": "Il y a eu un problème lors de la déconnexion. Veuillez réessayer.", "German": "Es gab ein Problem beim Abmelden. Bitte versuchen Sie es erneut." },
+        "Account Deletion Failed": { "English": "Account Deletion Failed", "Spanish": "Error al eliminar la cuenta", "French": "Échec de la suppression du compte", "German": "Konto löschen fehlgeschlagen" },
+        "There was a problem deleting your account. Please try again.": { "English": "There was a problem deleting your account. Please try again.", "Spanish": "Hubo un problema al eliminar su cuenta. Por favor, inténtelo de nuevo.", "French": "Il y a eu un problème lors de la suppression de votre compte. Veuillez réessayer.", "German": "Es gab ein Problem beim Löschen Ihres Kontos. Bitte versuchen Sie es erneut." },
+        "Confirm Deletion": { "English": "Confirm Deletion", "Spanish": "Confirmar eliminación", "French": "Confirmer la suppression", "German": "Löschung bestätigen" },
+        "This action is irreversible and will permanently delete your account and all associated data. Are you sure?": { "English": "This action is irreversible and will permanently delete your account and all associated data. Are you sure?", "Spanish": "Esta acción es irreversible y eliminará permanentemente su cuenta y todos los datos asociados. ¿Está seguro?", "French": "Cette action est irréversible et supprimera définitivement votre compte et toutes les données associées. Êtes-vous sûr ?", "German": "Diese Aktion ist irreversibel und löscht Ihr Konto und alle zugehörigen Daten endgültig. Sind Sie sicher?" },
+        "Please enter your password to confirm account deletion.": { "English": "Please enter your password to confirm account deletion.", "Spanish": "Por favor, introduzca su contraseña para confirmar la eliminación de la cuenta.", "French": "Veuillez entrer votre mot de passe pour confirmer la suppression du compte.", "German": "Bitte geben Sie Ihr Passwort ein, um die Kontolöschung zu bestätigen." },
+        "Incorrect Password": { "English": "Incorrect Password", "Spanish": "Contraseña incorrecta", "French": "Mot de passe incorrect", "German": "Falsches Passwort" },
+        "The password you entered is incorrect. Please try again.": { "English": "The password you entered is incorrect. Please try again.", "Spanish": "La contraseña que introdujo es incorrecta. Por favor, inténtelo de nuevo.", "French": "Le mot de passe que vous avez saisi es incorrecto. Veuillez réessayer.", "German": "Das eingegebene Passwort ist falsch. Bitte versuchen Sie es erneut." },
+        "Cancel": { "English": "Cancel", "Spanish": "Cancelar", "French": "Annuler", "German": "Abbrechen" },
+        "Delete": { "English": "Delete", "Spanish": "Eliminar", "French": "Supprimer", "German": "Löschen" },
+        "Unsupported Login": { "English": "Unsupported Login", "Spanish": "Inicio de sesión no compatible", "French": "Connexion non prise en charge", "German": "Nicht unterstützte Anmeldung" },
+        "This feature is only available for accounts created with email and password. Please delete your account through your original provider.": { "English": "This feature is only available for accounts created with email and password. Please delete your account through your original provider.", "Spanish": "Esta función solo está disponible para cuentas creadas con correo electrónico y contraseña. Por favor, elimine su cuenta a través de su proveedor original.", "French": "Cette fonctionnalité est uniquement disponible pour les comptes créés avec un e-mail et un mot de passe. Veuillez supprimer votre compte via votre fournisseur d'origine.", "German": "Diese Funktion ist nur für Konten verfügbar, die mit E-Mail und Passwort erstellt wurden. Bitte löschen Sie Ihr Konto über Ihren ursprünglichen Anbieter." }
     };
 
     const getTranslatedText = (key: string) => {
@@ -58,8 +133,8 @@ const Settings = () => {
 
     // Permissions hooks for camera and gallery
     const [cameraPermission, requestCameraPermission] = useCameraPermissions();
-    const [galleryPermission, requestGalleryPermission] = useMediaLibraryPermissions();
-    
+    const [galleryPermission, requestMediaLibraryPermissions] = useMediaLibraryPermissions();
+
     // Check initial permission status for notifications on mount
     useEffect(() => {
         (async () => {
@@ -75,7 +150,7 @@ const Settings = () => {
                 permission = await requestCameraPermission();
                 break;
             case 'gallery':
-                permission = await requestGalleryPermission();
+                permission = await requestMediaLibraryPermissions();
                 break;
             case 'notifications':
                 const { status } = await Notifications.requestPermissionsAsync();
@@ -105,11 +180,62 @@ const Settings = () => {
         }
     };
 
+    const confirmAndDeleteAccount = async (password: string | undefined) => {
+        setShowPasswordPrompt(false);
+        const user = auth.currentUser;
+        if (!user || !user.email) {
+            console.log("User or user email is null in confirmAndDeleteAccount.");
+            Alert.alert(getTranslatedText("Error"), getTranslatedText("Could not find user details. Please try logging in again."));
+            return;
+        }
+
+        if (!password) {
+            console.log("Password is empty.");
+            Alert.alert(getTranslatedText("Error"), "Password cannot be empty.");
+            return;
+        }
+
+        try {
+            const credential = EmailAuthProvider.credential(user.email!, password);
+            await reauthenticateWithCredential(user, credential);
+            await deleteUser(user);
+            router.replace('/(auth)/login');
+        } catch (error: any) {
+            console.error("Account deletion failed:", error);
+            if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                Alert.alert(getTranslatedText("Incorrect Password"), getTranslatedText("The password you entered is incorrect. Please try again."));
+            } else {
+                Alert.alert(getTranslatedText("Account Deletion Failed"), getTranslatedText("There was a problem deleting your account. Please try again."));
+            }
+        }
+    };
+
+    const handleDeleteAccount = () => {
+        console.log("Delete Account button pressed.");
+        const user = auth.currentUser;
+        if (!user) {
+            console.log("auth.currentUser is null. Exiting handleDeleteAccount.");
+            Alert.alert(getTranslatedText("Error"), getTranslatedText("Could not find user details. Please try logging in again."));
+            return;
+        }
+
+        // Check if the user's login method is email and password
+        const isEmailPasswordUser = user.providerData.some(provider => provider.providerId === 'password');
+        console.log("User is an email/password user:", isEmailPasswordUser);
+
+        if (!isEmailPasswordUser) {
+            console.log("Exiting handleDeleteAccount. User is not an email/password user.");
+            Alert.alert(getTranslatedText("Unsupported Login"), getTranslatedText("This feature is only available for accounts created with email and password. Please delete your account through your original provider."));
+            return;
+        }
+        setShowPasswordPrompt(true);
+    };
+
     const containerClassName = isDarkMode ? 'bg-gray-900' : 'bg-white';
     const cardClassName = isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200';
     const textClassName = isDarkMode ? 'text-gray-300' : 'text-gray-800';
     const subTextClassName = isDarkMode ? 'text-gray-400' : 'text-gray-600';
-    
+
     const getPermissionStatus = (permission: { status: string } | null | undefined) => {
         if (!permission) return getTranslatedText('checking...');
         return getTranslatedText(permission.status === 'granted' ? 'Granted' : 'Denied');
@@ -124,21 +250,10 @@ const Settings = () => {
                         <Text className={`text-3xl font-bold mt-2 ${textClassName}`}>{getTranslatedText("Settings")}</Text>
                     </View>
 
-                    {/* Account Section */}
-                    <View className={`w-full max-w-sm p-6 rounded-lg shadow-md border ${cardClassName} mb-6`}>
-                        <Text className={`text-lg font-bold mb-4 ${textClassName}`}>{getTranslatedText("Account")}</Text>
-                        <TouchableOpacity
-                            className="w-full py-3 rounded-lg flex items-center justify-center bg-red-500 shadow-md"
-                            onPress={handleLogout}
-                        >
-                            <Text className="text-white font-bold text-base">{getTranslatedText("Logout")}</Text>
-                        </TouchableOpacity>
-                    </View>
-
                     {/* General Section */}
                     <View className={`w-full max-w-sm p-6 rounded-lg shadow-md border ${cardClassName} mb-6`}>
                         <Text className={`text-lg font-bold mb-2 ${textClassName}`}>{getTranslatedText("General")}</Text>
-                        
+
                         {/* Dark Mode */}
                         <View className={`flex-row items-center justify-between py-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                             <View className="flex-row items-center">
@@ -157,9 +272,9 @@ const Settings = () => {
                         <SettingItem icon="language-outline" label={getTranslatedText("Language")} isDarkMode={isDarkMode}>
                             <View className="flex-col items-end">
                                 {availableLanguages.map(lang => (
-                                    <TouchableOpacity 
-                                        key={lang} 
-                                        onPress={() => changeLanguage(lang)} 
+                                    <TouchableOpacity
+                                        key={lang}
+                                        onPress={() => changeLanguage(lang)}
                                         className="py-1"
                                     >
                                         <Text className={`text-base ${language === lang ? 'font-bold text-green-500' : subTextClassName}`}>{lang}</Text>
@@ -170,7 +285,7 @@ const Settings = () => {
                     </View>
 
                     {/* Permissions Section */}
-                    <View className={`w-full max-w-sm p-6 rounded-lg shadow-md border ${cardClassName}`}>
+                    <View className={`w-full max-w-sm p-6 rounded-lg shadow-md border ${cardClassName} mb-6`}>
                         <Text className={`text-lg font-bold mb-2 ${textClassName}`}>{getTranslatedText("App Permissions")}</Text>
 
                         <TouchableOpacity onPress={() => requestPermission('notifications')}>
@@ -191,8 +306,31 @@ const Settings = () => {
                             </SettingItem>
                         </TouchableOpacity>
                     </View>
+
+                    {/* Account Section */}
+                    <View className={`w-full max-w-sm p-6 rounded-lg shadow-md border ${cardClassName}`}>
+                        <Text className={`text-lg font-bold mb-4 ${textClassName}`}>{getTranslatedText("Account")}</Text>
+                        <TouchableOpacity
+                            className="w-full py-3 rounded-lg flex items-center justify-center bg-red-500 shadow-md mb-2"
+                            onPress={handleLogout}
+                        >
+                            <Text className="text-white font-bold text-base">{getTranslatedText("Logout")}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            className="w-full py-3 rounded-lg flex items-center justify-center bg-red-700 shadow-md"
+                            onPress={handleDeleteAccount}
+                        >
+                            <Text className="text-white font-bold text-base">{getTranslatedText("Delete Account")}</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </ScrollView>
+            <PasswordPromptModal
+                isVisible={showPasswordPrompt}
+                onClose={() => setShowPasswordPrompt(false)}
+                onConfirm={confirmAndDeleteAccount}
+                isDarkMode={isDarkMode}
+            />
         </SafeAreaView>
     );
 };
