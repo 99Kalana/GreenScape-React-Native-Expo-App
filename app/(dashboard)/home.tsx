@@ -76,8 +76,8 @@ const Home = () => {
                         <Text className={`text-4xl font-extrabold ml-2 ${headerTextClassName}`}>{getTranslatedHomeText("GreenScape")}</Text>
                     </View>
                     
-                    {/* Modern Greeting Section */}
-                    <View className={`p-4 rounded-xl shadow-md w-full max-w-lg mt-2 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                    {/* Modern Greeting Section - Centered */}
+                    <View className={`p-4 rounded-xl shadow-md w-full max-w-lg mt-2 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} items-center`}>
                         <Text className={`text-sm font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                             {getTranslatedHomeText("Hello, ")}
                         </Text>
