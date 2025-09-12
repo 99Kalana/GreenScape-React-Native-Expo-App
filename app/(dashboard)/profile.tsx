@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal } from 'react-native';
 import React, { useState } from 'react';
 import { getAuth, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { router } from 'expo-router';
@@ -17,6 +17,10 @@ const Profile = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [isModalVisible, setModalVisible] = useState(false);
+    const [showOldPassword, setShowOldPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const translations: { [key: string]: { [lang: string]: string } } = {
         "Profile": { "English": "Profile", "Spanish": "Perfil", "French": "Profil", "German": "Profil" },
@@ -33,55 +37,53 @@ const Profile = () => {
         "Failed to update password. Please try again.": { "English": "Failed to update password. Please try again.", "Spanish": "No se pudo actualizar la contraseña. Por favor, inténtelo de nuevo.", "French": "Échec de la mise à jour du mot de passe. Veuillez réessayer.", "German": "Passwort konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut." },
         "Incorrect old password. Please try again.": { "English": "Incorrect old password. Please try again.", "Spanish": "Contraseña anterior incorrecta. Por favor, inténtelo de nuevo.", "French": "Ancien mot de passe incorrect. Veuillez réessayer.", "German": "Altes Passwort ist falsch. Bitte versuchen Sie es erneut." },
         "Cannot change password for this account type. Please try again.": { "English": "Cannot change password for this account type. Please try again.", "Spanish": "No se puede cambiar la contraseña para este tipo de cuenta. Por favor, inténtelo de nuevo.", "French": "Impossible de changer le mot de passe pour ce type de compte. Veuillez réessayer.", "German": "Passwort kann für diesen Kontotyp nicht geändert werden. Bitte versuchen Sie es erneut." },
-        "Your password has been changed successfully.": { "English": "Your password has been changed successfully.", "Spanish": "Su contraseña ha sido cambiada con éxito.", "French": "Votre mot de passe a été changé avec succès.", "German": "Ihr Passwort wurde erfolgreich geändert." }
+        "Update your password": { "English": "Update your password", "Spanish": "Actualiza tu contraseña", "French": "Mettez à jour votre mot de passe", "German": "Passwort aktualisieren" },
+        "Keep your account secure by regularly updating your password.": { "English": "Keep your account secure by regularly updating your password.", "Spanish": "Mantén tu cuenta segura actualizando tu contraseña regularmente.", "French": "Gardez votre compte sécurisé en mettant à jour régulièrement votre mot de passe.", "German": "Halten Sie Ihr Konto sicher, indem Sie Ihr Passwort regelmäßig aktualisieren." },
+        "Confirm Password Change": { "English": "Confirm Password Change", "Spanish": "Confirmar cambio de contraseña", "French": "Confirmer le changement de mot de passe", "German": "Passwortänderung bestätigen" },
+        "Are you sure you want to change your password? This action is irreversible.": { "English": "Are you sure you want to change your password? This action is irreversible.", "Spanish": "¿Estás seguro de que quieres cambiar tu contraseña? Esta acción es irreversible.", "French": "Êtes-vous sûr de vouloir changer votre mot de passe ? Cette action est irréversible.", "German": "Sind Sie sicher, dass Sie Ihr Passwort ändern möchten? Diese Aktion ist irreversibel." },
+        "Cancel": { "English": "Cancel", "Spanish": "Cancelar", "French": "Annuler", "German": "Abbrechen" }
     };
 
     const getTranslatedText = (key: string) => {
         return translations[key]?.[language] || key;
     };
 
-    // Handle password change functionality with old password verification
-    const handleChangePassword = async () => {
-        setError('');
-        setSuccess('');
-
-        // Basic validation
+    const handleInitialChangePassword = () => {
+        // Basic validation before showing the modal
         if (!oldPassword || !newPassword || !confirmPassword) {
             setError(getTranslatedText('All password fields are required.'));
             return;
         }
-
         if (newPassword.length < 6) {
             setError(getTranslatedText('New password must be at least 6 characters long.'));
             return;
         }
-
         if (newPassword !== confirmPassword) {
             setError(getTranslatedText('New passwords do not match.'));
             return;
         }
 
+        setError(''); // Clear previous errors
+        setModalVisible(true);
+    };
+
+    const handleConfirmChangePassword = async () => {
+        setModalVisible(false); // Hide the modal
         setIsLoading(true);
         try {
             if (auth.currentUser && auth.currentUser.email) {
-                // Re-authenticate the user with their old password
                 const credential = EmailAuthProvider.credential(auth.currentUser.email, oldPassword);
                 await reauthenticateWithCredential(auth.currentUser, credential);
-
-                // If re-authentication is successful, update the password
                 await updatePassword(auth.currentUser, newPassword);
                 setSuccess(getTranslatedText('Password updated successfully!'));
                 setOldPassword('');
                 setNewPassword('');
                 setConfirmPassword('');
-                Alert.alert(getTranslatedText("Success"), getTranslatedText("Your password has been changed successfully."));
             } else {
-                // Handle cases where user is not signed in or has no email
                 setError(getTranslatedText("Cannot change password for this account type. Please try again."));
                 router.replace('/(auth)/login');
             }
         } catch (err: any) {
-            // Handle Firebase-specific errors
             if (err.code === 'auth/wrong-password') {
                 setError(getTranslatedText('Incorrect old password. Please try again.'));
             } else {
@@ -97,6 +99,7 @@ const Profile = () => {
     const cardClassName = isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200';
     const textClassName = isDarkMode ? 'text-gray-300' : 'text-gray-800';
     const inputClassName = isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-300' : 'bg-white border-gray-300 text-gray-700';
+    const placeholderColor = isDarkMode ? '#a1a1aa' : '#9ca3af';
 
     return (
         <SafeAreaView className={`flex-1 p-6 ${containerClassName}`}>
@@ -112,42 +115,72 @@ const Profile = () => {
                 {/* Password Change Form */}
                 <View className={`w-full max-w-sm p-6 rounded-lg shadow-md border ${cardClassName}`}>
                     <Text className={`text-lg font-bold ${textClassName} mb-4`}>{getTranslatedText("Change Password")}</Text>
-                    <TextInput
-                        className={`w-full p-3 rounded-md border mb-3 focus:border-green-500 ${inputClassName}`}
-                        placeholder={getTranslatedText("Current Password")}
-                        secureTextEntry
-                        value={oldPassword}
-                        onChangeText={setOldPassword}
-                        placeholderTextColor={isDarkMode ? '#a1a1aa' : '#9ca3af'}
-                    />
-                    <TextInput
-                        className={`w-full p-3 rounded-md border mb-3 focus:border-green-500 ${inputClassName}`}
-                        placeholder={getTranslatedText("New Password")}
-                        secureTextEntry
-                        value={newPassword}
-                        onChangeText={setNewPassword}
-                        placeholderTextColor={isDarkMode ? '#a1a1aa' : '#9ca3af'}
-                    />
-                    <TextInput
-                        className={`w-full p-3 rounded-md border mb-4 focus:border-green-500 ${inputClassName}`}
-                        placeholder={getTranslatedText("Confirm New Password")}
-                        secureTextEntry
-                        value={confirmPassword}
-                        onChangeText={setConfirmPassword}
-                        placeholderTextColor={isDarkMode ? '#a1a1aa' : '#9ca3af'}
-                    />
-                    
+
+                    {/* Old Password Input with eye icon */}
+                    <View className="relative w-full mb-3">
+                        <TextInput
+                            className={`w-full p-3 pr-10 rounded-md border focus:border-green-500 ${inputClassName}`}
+                            placeholder={getTranslatedText("Current Password")}
+                            secureTextEntry={!showOldPassword}
+                            value={oldPassword}
+                            onChangeText={setOldPassword}
+                            placeholderTextColor={placeholderColor}
+                        />
+                        <TouchableOpacity
+                            className="absolute right-3 top-3"
+                            onPress={() => setShowOldPassword(!showOldPassword)}
+                        >
+                            <Ionicons name={showOldPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={isDarkMode ? '#a1a1aa' : '#9ca3af'} />
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* New Password Input with eye icon */}
+                    <View className="relative w-full mb-3">
+                        <TextInput
+                            className={`w-full p-3 pr-10 rounded-md border focus:border-green-500 ${inputClassName}`}
+                            placeholder={getTranslatedText("New Password")}
+                            secureTextEntry={!showNewPassword}
+                            value={newPassword}
+                            onChangeText={setNewPassword}
+                            placeholderTextColor={placeholderColor}
+                        />
+                        <TouchableOpacity
+                            className="absolute right-3 top-3"
+                            onPress={() => setShowNewPassword(!showNewPassword)}
+                        >
+                            <Ionicons name={showNewPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={isDarkMode ? '#a1a1aa' : '#9ca3af'} />
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Confirm Password Input with eye icon */}
+                    <View className="relative w-full mb-4">
+                        <TextInput
+                            className={`w-full p-3 pr-10 rounded-md border focus:border-green-500 ${inputClassName}`}
+                            placeholder={getTranslatedText("Confirm New Password")}
+                            secureTextEntry={!showConfirmPassword}
+                            value={confirmPassword}
+                            onChangeText={setConfirmPassword}
+                            placeholderTextColor={placeholderColor}
+                        />
+                        <TouchableOpacity
+                            className="absolute right-3 top-3"
+                            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                            <Ionicons name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={isDarkMode ? '#a1a1aa' : '#9ca3af'} />
+                        </TouchableOpacity>
+                    </View>
+
                     {error ? (
                         <Text className="text-red-500 text-sm mb-2">{error}</Text>
                     ) : null}
-                    
+
                     {success ? (
                         <Text className="text-green-500 text-sm mb-2">{success}</Text>
                     ) : null}
 
                     <TouchableOpacity
                         className={`w-full py-3 rounded-lg flex items-center justify-center ${isLoading ? 'bg-green-300' : 'bg-green-500'}`}
-                        onPress={handleChangePassword}
+                        onPress={handleInitialChangePassword}
                         disabled={isLoading}
                     >
                         <Text className="text-white font-bold text-base">
@@ -156,7 +189,46 @@ const Profile = () => {
                     </TouchableOpacity>
                 </View>
 
+                {/* Information Card */}
+                <View className={`w-full max-w-sm mt-6 p-6 rounded-lg shadow-md border flex-row items-center ${cardClassName}`}>
+                    <Ionicons name="shield-checkmark-outline" size={30} color="#22C55E" />
+                    <View className="ml-4 flex-1">
+                        <Text className={`text-lg font-bold ${textClassName}`}>{getTranslatedText("Update your password")}</Text>
+                        <Text className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>{getTranslatedText("Keep your account secure by regularly updating your password.")}</Text>
+                    </View>
+                </View>
             </View>
+
+            {/* Confirmation Modal */}
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={isModalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
+                    <View className={`w-11/12 max-w-sm p-6 rounded-lg shadow-lg ${cardClassName}`}>
+                        <Text className={`text-lg font-bold ${textClassName} mb-4 text-center`}>{getTranslatedText("Confirm Password Change")}</Text>
+                        <Text className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-center mb-6`}>
+                            {getTranslatedText("Are you sure you want to change your password? This action is irreversible.")}
+                        </Text>
+                        <View className="flex-row justify-center">
+                            <TouchableOpacity
+                                className="flex-1 py-3 px-6 rounded-lg bg-red-500 mr-2 flex items-center justify-center"
+                                onPress={() => setModalVisible(false)}
+                            >
+                                <Text className="text-white font-bold">{getTranslatedText("Cancel")}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                className="flex-1 py-3 px-6 rounded-lg bg-green-500 ml-2 flex items-center justify-center"
+                                onPress={handleConfirmChangePassword}
+                            >
+                                <Text className="text-white font-bold">{getTranslatedText("Change Password")}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 };
