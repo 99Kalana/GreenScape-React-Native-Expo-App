@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, Alert, Switch, ScrollView, Modal, TextInput } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getAuth, signOut, deleteUser, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -136,13 +136,16 @@ const Settings = () => {
     const [cameraPermission, requestCameraPermission] = useCameraPermissions();
     const [galleryPermission, requestMediaLibraryPermissions] = useMediaLibraryPermissions();
 
-    // Check initial permission status for notifications on mount
+    // New function to check and set the notification permission status
+    const checkNotificationStatus = useCallback(async () => {
+        const { status } = await Notifications.getPermissionsAsync();
+        setNotificationStatus(getTranslatedText(status === 'granted' ? 'Granted' : 'Denied'));
+    }, [getTranslatedText]);
+
+    // Check initial permission status for notifications and update when language changes
     useEffect(() => {
-        (async () => {
-            const { status } = await Notifications.getPermissionsAsync();
-            setNotificationStatus(getTranslatedText(status === 'granted' ? 'Granted' : 'Denied'));
-        })();
-    }, []);
+        checkNotificationStatus();
+    }, [language, checkNotificationStatus]); // ADDED language to the dependency array
 
     const requestPermission = async (type: 'camera' | 'gallery' | 'notifications') => {
         let permission;
@@ -155,7 +158,8 @@ const Settings = () => {
                 break;
             case 'notifications':
                 const { status } = await Notifications.requestPermissionsAsync();
-                setNotificationStatus(getTranslatedText(status === 'granted' ? 'Granted' : 'Denied'));
+                // After requesting, re-check the status to ensure the UI updates
+                checkNotificationStatus();
                 if (status === 'granted') return;
                 break;
         }
@@ -289,18 +293,21 @@ const Settings = () => {
                     <View className={`w-full max-w-sm p-6 rounded-lg shadow-md border ${cardClassName} mb-6`}>
                         <Text className={`text-lg font-bold mb-2 ${textClassName}`}>{getTranslatedText("App Permissions")}</Text>
 
+                        {/* Notifications */}
                         <TouchableOpacity onPress={() => requestPermission('notifications')}>
                             <SettingItem icon="notifications-outline" label={getTranslatedText("Notifications")} isDarkMode={isDarkMode}>
                                 <Text className={`text-sm ${notificationStatus === getTranslatedText('Granted') ? 'text-green-500' : 'text-red-500'}`}>{notificationStatus}</Text>
                             </SettingItem>
                         </TouchableOpacity>
 
+                        {/* Camera */}
                         <TouchableOpacity onPress={() => requestPermission('camera')}>
                             <SettingItem icon="camera-outline" label={getTranslatedText("Camera")} isDarkMode={isDarkMode}>
                                 <Text className={`text-sm ${getPermissionStatus(cameraPermission) === getTranslatedText('Granted') ? 'text-green-500' : 'text-red-500'}`}>{getPermissionStatus(cameraPermission)}</Text>
                             </SettingItem>
                         </TouchableOpacity>
 
+                        {/* Gallery */}
                         <TouchableOpacity onPress={() => requestPermission('gallery')}>
                             <SettingItem icon="image-outline" label={getTranslatedText("Gallery")} isDarkMode={isDarkMode}>
                                 <Text className={`text-sm ${getPermissionStatus(galleryPermission) === getTranslatedText('Granted') ? 'text-green-500' : 'text-red-500'}`}>{getPermissionStatus(galleryPermission)}</Text>
