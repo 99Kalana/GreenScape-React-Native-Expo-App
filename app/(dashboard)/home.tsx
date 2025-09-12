@@ -75,9 +75,16 @@ const Home = () => {
                         <Ionicons name="leaf-outline" size={60} color="#22C55E" />
                         <Text className={`text-4xl font-extrabold ml-2 ${headerTextClassName}`}>{getTranslatedHomeText("GreenScape")}</Text>
                     </View>
-                    <Text className={`text-lg mt-2 ${subTextClassName}`}>
-                        {getTranslatedHomeText("Hello, ")} {user?.email || 'Guest'} {getTranslatedHomeText("!")}
-                    </Text>
+                    
+                    {/* Modern Greeting Section */}
+                    <View className={`p-4 rounded-xl shadow-md w-full max-w-lg mt-2 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                        <Text className={`text-sm font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {getTranslatedHomeText("Hello, ")}
+                        </Text>
+                        <Text className={`text-xl font-bold mt-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+                            {user?.email || 'Guest'}{getTranslatedHomeText("!")}
+                        </Text>
+                    </View>
 
                     {/* Notification Banner */}
                     {notificationPermissionStatus === 'denied' && notificationBannerVisible && (
