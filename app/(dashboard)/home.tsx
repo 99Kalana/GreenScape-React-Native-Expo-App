@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import { useRouter } from 'expo-router';
 import * as Notifications from 'expo-notifications';
@@ -27,7 +27,12 @@ const Home = () => {
         "My Plants": { "English": "My Plants", "Spanish": "Mis Plantas", "French": "Mes Plantes", "German": "Meine Pflanzen" },
         "Identify": { "English": "Identify", "Spanish": "Identificar", "French": "Identifier", "German": "Identifizieren" },
         "Profile": { "English": "Profile", "Spanish": "Perfil", "French": "Profil", "German": "Profil" },
-        "Settings": { "English": "Settings", "Spanish": "Ajustes", "French": "Paramètres", "German": "Einstellungen" }
+        "Settings": { "English": "Settings", "Spanish": "Ajustes", "French": "Paramètres", "German": "Einstellungen" },
+        "About GreenScape": { "English": "About GreenScape", "Spanish": "Acerca de GreenScape", "French": "À Propos de GreenScape", "German": "Über GreenScape" },
+        "About this App": { "English": "About this App", "Spanish": "Acerca de esta Aplicación", "French": "À Propos de cette App", "German": "Über diese App" },
+        "GreenScape is your personal plant care companion, designed to help you nurture your plants and connect with nature. With features like plant identification, care reminders, and a personal plant journal, we make it easy to bring a little more green into your life.": { "English": "GreenScape is your personal plant care companion, designed to help you nurture your plants and connect with nature. With features like plant identification, care reminders, and a personal plant journal, we make it easy to bring a little more green into your life.", "Spanish": "GreenScape es tu compañero personal para el cuidado de las plantas, diseñado para ayudarte a nutrir tus plantas y conectar con la naturaleza. Con funciones como la identificación de plantas, recordatorios de cuidado y un diario personal de plantas, te facilitamos la tarea de traer un poco más de verde a tu vida.", "French": "GreenScape est votre compagnon personnel de soin des plantes, conçu pour vous aider à prendre soin de vos plantes et à vous connecter avec la nature. Avec des fonctionnalités comme l'identification des plantes, les rappels d'entretien et un journal personnel des plantes, nous vous aidons à ajouter un peu plus de vert dans votre vie.", "German": "GreenScape ist Ihr persönlicher Begleiter für die Pflanzenpflege, der Ihnen hilft, Ihre Pflanzen zu pflegen und sich mit der Natur zu verbinden. Mit Funktionen wie Pflanzenidentifikation, Pflegeerinnerungen und einem persönlichen Pflanzentagebuch machen wir es Ihnen leicht, ein bisschen mehr Grün in Ihr Leben zu bringen." },
+        "The Buddha's View on Nature": { "English": "The Buddha's View on Nature", "Spanish": "La Visión de Buda sobre la Naturaleza", "French": "La Vision de Bouddha sur la Nature", "German": "Die Sichtweise des Buddha auf die Natur" },
+        "In Buddhism, nature is seen as an interconnected web of life. The Buddha taught that all beings are part of a shared existence, emphasizing reverence for all life forms. This deep respect for the natural world is a cornerstone of Buddhist philosophy, reflecting the belief that caring for the environment is essential for spiritual well-being.": { "English": "In Buddhism, nature is seen as an interconnected web of life. The Buddha taught that all beings are part of a shared existence, emphasizing reverence for all life forms. This deep respect for the natural world is a cornerstone of Buddhist philosophy, reflecting the belief that caring for the environment is essential for spiritual well-being.", "Spanish": "En el budismo, la naturaleza es vista como una red interconectada de vida. El Buda enseñó que todos los seres son parte de una existencia compartida, enfatizando la reverencia por todas las formas de vida. Este profundo respeto por el mundo natural es una piedra angular de la filosofía budista, lo que refleja la creencia de que el cuidado del medio ambiente es esencial para el bienestar espiritual.", "French": "Dans le bouddhisme, la nature est vue comme une toile de vie interconnectée. Le Bouddha a enseigné que tous les êtres font partie d'une existence partagée, en mettant l'accent sur le respect de toutes les formes de vie. Ce profond respect pour le monde naturel est une pierre angulaire de la philosophie bouddhiste, reflétant la conviction que prendre soin de l'environnement est essentiel para el bienestar espiritual.", "German": "Im Buddhismus wird die Natur als ein miteinander verbundenes Netz des Lebens angesehen. Der Buddha lehrte, dass alle Wesen Teil einer gemeinsamen Existenz sind, und betonte die Ehrfurcht vor allen Lebensformen. Dieser tiefe Respekt vor der natürlichen Welt ist ein Eckpfeiler der buddhistischen Philosophie und spiegelt den Glauben wider, dass die Sorge um die Umwelt für das spirituelle Wohlbefinden unerlässlich ist." }
     };
 
     const getTranslatedHomeText = (key: string) => {
@@ -138,6 +143,43 @@ const Home = () => {
                             <Ionicons name="settings-outline" size={50} color="white" />
                             <Text className="text-white text-lg font-bold mt-2">{getTranslatedHomeText("Settings")}</Text>
                         </TouchableOpacity>
+                    </View>
+
+                    {/* About Section */}
+                    <View className={`w-full max-w-lg mt-12 p-4 rounded-xl shadow-md ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                        <Text className={`text-2xl font-bold mb-4 text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+                            {getTranslatedHomeText("About GreenScape")}
+                        </Text>
+                        
+                        {/* About this App Article */}
+                        <View className={`mb-6 p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                            {/* To use a local image from your assets folder, replace the URI with a require statement: */}
+                            {/* <Image source={require('../../assets/images/logo.png')} className="w-full h-40 rounded-lg mb-4" /> */}
+                            <Image
+                                source={{ uri: 'https://placehold.co/600x400/22C55E/ffffff?text=GreenScape+Logo' }}
+                                className="w-full h-40 rounded-lg mb-4"
+                            />
+                            <Text className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+                                {getTranslatedHomeText("About this App")}
+                            </Text>
+                            <Text className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                {getTranslatedHomeText("GreenScape is your personal plant care companion, designed to help you nurture your plants and connect with nature. With features like plant identification, care reminders, and a personal plant journal, we make it easy to bring a little more green into your life.")}
+                            </Text>
+                        </View>
+
+                        {/* Buddha Article */}
+                        <View className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                            <Image
+                                source={{ uri: 'https://placehold.co/600x400/22C55E/ffffff?text=Buddha+and+Nature' }}
+                                className="w-full h-40 rounded-lg mb-4"
+                            />
+                            <Text className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+                                {getTranslatedHomeText("The Buddha's View on Nature")}
+                            </Text>
+                            <Text className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                {getTranslatedHomeText("In Buddhism, nature is seen as an interconnected web of life. The Buddha taught that all beings are part of a shared existence, emphasizing reverence for all life forms. This deep respect for the natural world is a cornerstone of Buddhist philosophy, reflecting the belief that caring for the environment is essential for spiritual well-being.")}
+                            </Text>
+                        </View>
                     </View>
                 </View>
             </ScrollView>
