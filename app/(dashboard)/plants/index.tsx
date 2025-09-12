@@ -9,6 +9,9 @@ import { Plant } from '@/types/plant';
 import { auth } from '@/firebase';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useTheme } from '../../../context/ThemeContext';
+import * as Notifications from 'expo-notifications';
+import { DateTriggerInput } from 'expo-notifications';
+
 
 const PlantsScreen = () => {
     const [plants, setPlants] = useState<Plant[]>([]);
@@ -35,6 +38,9 @@ const PlantsScreen = () => {
         "Error": { "English": "Error", "Spanish": "Error", "French": "Erreur", "German": "Fehler" },
         "Failed to delete plant.": { "English": "Failed to delete plant.", "Spanish": "No se pudo eliminar la planta.", "French": "Échec de la suppression de la plante.", "German": "Fehler beim Löschen der Pflanze." },
         "Failed to update plant.": { "English": "Failed to update plant.", "Spanish": "No se pudo actualizar la planta.", "French": "Échec de la mise à jour de la planta.", "German": "Fehler beim Aktualisieren der Pflanze." },
+        "Watered!": { "English": "Watered!", "Spanish": "¡Regado!", "French": "Arrosé !", "German": "Gegossen!" },
+        "Fertilized!": { "English": "Fertilized!", "Spanish": "¡Fertilizado!", "French": "Fertilisé !", "German": "Gedüngt!" },
+        "Plant deleted successfully.": { "English": "Plant deleted successfully.", "Spanish": "Planta eliminada con éxito.", "French": "Plante supprimée avec succès.", "German": "Pflanze erfolgreich gelöscht." },
     };
 
     const getTranslatedText = (key: string) => {
@@ -99,6 +105,47 @@ const PlantsScreen = () => {
         plant.species.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    // This function schedules the new notification
+    const scheduleNotificationForPlant = async (plantId: string, plantName: string, type: 'watering' | 'fertilizing') => {
+        const { status } = await Notifications.getPermissionsAsync();
+        if (status !== 'granted') {
+            await Notifications.requestPermissionsAsync();
+        }
+
+        const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+        for (const notification of scheduledNotifications) {
+            if (notification.content.data && notification.content.data.plantId === plantId) {
+                await Notifications.cancelScheduledNotificationAsync(notification.identifier);
+            }
+        }
+
+        const body = type === 'watering' ? `Time to water your ${plantName}!` : `Time to fertilize your ${plantName}!`;
+
+        await Notifications.scheduleNotificationAsync({
+            content: {
+                title: "🌱 Plant Care Reminder",
+                body,
+                data: { plantId, type },
+            },
+            //@ts-ignore
+            trigger: {
+                type: 'date',
+                date: new Date(Date.now() + 2 * 60 * 1000), // Schedules for 2 minutes from now
+            },
+        });
+        console.log(`Notification scheduled for plant ${plantName} (${type}).`);
+        
+        console.log("Notifications scheduled successfully.");
+        const newScheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+        console.log("Current scheduled notifications:", newScheduledNotifications);
+        
+        newScheduledNotifications.forEach(notification => {
+            console.log("Notification ID:", notification.identifier);
+            console.log("Notification Data:", notification.content.data);
+        });
+        
+    };
+
     const handleDelete = async (id: string) => {
         Alert.alert(getTranslatedText("Delete Plant"), getTranslatedText("Are you sure you want to delete this plant?"), [
             { text: getTranslatedText("Cancel") },
@@ -108,6 +155,13 @@ const PlantsScreen = () => {
                     try {
                         showLoader();
                         await deletePlant(id);
+                        // Also cancel any scheduled notifications for this plant
+                        const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+                        for (const notification of scheduledNotifications) {
+                            if (notification.content.data && notification.content.data.plantId === id) {
+                                await Notifications.cancelScheduledNotificationAsync(notification.identifier);
+                            }
+                        }
                     } catch (err) {
                         console.error("Error deleting plant:", err);
                         Alert.alert(getTranslatedText("Error"), getTranslatedText("Failed to delete plant."));
@@ -119,7 +173,7 @@ const PlantsScreen = () => {
         ]);
     };
 
-    const handleUpdate = async (plantId: string, field: "lastWatered" | "lastFertilized") => {
+    const handleUpdate = async (plantId: string, plantName: string, field: "lastWatered" | "lastFertilized") => {
         if (!plantId) {
             console.error("Plant ID is missing.");
             return;
@@ -131,6 +185,9 @@ const PlantsScreen = () => {
             await updateDoc(plantDocRef, {
                 [field]: new Date(),
             });
+            // Schedule a new notification after a successful update
+            await scheduleNotificationForPlant(plantId, plantName, field === "lastWatered" ? 'watering' : 'fertilizing');
+            
         } catch (err) {
             console.error(`Error updating ${field}:`, err);
             Alert.alert(getTranslatedText("Error"), getTranslatedText("Failed to update plant."));
@@ -206,7 +263,7 @@ const PlantsScreen = () => {
                                 {/* Water Now Button */}
                                 <TouchableOpacity
                                     className={`flex-1 px-4 py-2 rounded-md ${waterButtonColor}`}
-                                    onPress={() => { if (plant.id) handleUpdate(plant.id, "lastWatered"); }}
+                                    onPress={() => { if (plant.id) handleUpdate(plant.id, plant.name, "lastWatered"); }}
                                 >
                                     <View className="flex-row items-center justify-center">
                                         <MaterialIcons name="water-drop" size={20} color="#fff" />
@@ -217,7 +274,7 @@ const PlantsScreen = () => {
                                 {/* Fertilize Now Button */}
                                 <TouchableOpacity
                                     className={`flex-1 px-4 py-2 rounded-md ml-2 ${fertilizeButtonColor}`}
-                                    onPress={() => { if (plant.id) handleUpdate(plant.id, "lastFertilized"); }}
+                                    onPress={() => { if (plant.id) handleUpdate(plant.id, plant.name, "lastFertilized"); }}
                                 >
                                     <View className="flex-row items-center justify-center">
                                         <MaterialIcons name="local-florist" size={20} color="#fff" />
