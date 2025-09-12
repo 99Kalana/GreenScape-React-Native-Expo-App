@@ -1,4 +1,4 @@
-import { View, Text, Button, Image, ActivityIndicator, Alert, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, Image, ActivityIndicator, Alert, TouchableOpacity, ScrollView } from "react-native";
 import React, { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { identifyPlant } from "../../../services/plantIdentificationService";
@@ -37,6 +37,8 @@ const IdentifyScreen = () => {
         "Common Name": { "English": "Common Name", "Spanish": "Nombre común", "French": "Nom commun", "German": "Gewöhnlicher Name" },
         "Genus": { "English": "Genus", "Spanish": "Género", "French": "Genre", "German": "Gattung" },
         "Family": { "English": "Family", "Spanish": "Familia", "French": "Famille", "German": "Familie" },
+        "How it Works": { "English": "How it Works", "Spanish": "Cómo Funciona", "French": "Comment ça Marche", "German": "So funktioniert's" },
+        "Take or upload a picture of a plant and we'll use our AI to identify it for you.": { "English": "Take or upload a picture of a plant and we'll use our AI to identify it for you.", "Spanish": "Toma o sube una foto de una planta y usaremos nuestra IA para identificarla por ti.", "French": "Prenez ou téléchargez une photo d'une plante et nous utiliserons notre IA pour l'identifier pour vous.", "German": "Machen Sie ein Foto oder laden Sie ein Bild einer Pflanze hoch, und unsere KI wird sie für Sie identifizieren." },
     };
 
     const getTranslatedText = (key: string) => {
@@ -119,10 +121,7 @@ const IdentifyScreen = () => {
     const containerClassName = isDarkMode ? 'bg-gray-900' : 'bg-white';
     const textClassName = isDarkMode ? 'text-gray-300' : 'text-gray-800';
     const resultCardClassName = isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200';
-    const buttonClassName = `flex-row items-center justify-center py-3 px-6 rounded-md shadow-md mb-2`;
-    const commonButtonStyles = 'w-full py-3 rounded-lg flex items-center justify-center font-bold text-base';
-    const primaryButtonColor = isDarkMode ? 'bg-green-600' : 'bg-green-500';
-    const secondaryButtonColor = isDarkMode ? 'bg-blue-600' : 'bg-blue-500';
+    const buttonClassName = `flex-row items-center justify-center py-4 px-6 rounded-full shadow-md`;
 
     return (
         <ScrollView className={`flex-1 p-5 ${containerClassName}`}>
@@ -134,23 +133,37 @@ const IdentifyScreen = () => {
                     </Text>
                 </View>
 
-                <View className="w-full max-w-sm mb-5 px-4">
+                {!imageUri && !loading && (
+                    <View className={`w-full max-w-sm mt-5 mb-8 p-6 rounded-2xl shadow-lg border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} items-center`}>
+                        <Ionicons name="camera-outline" size={60} color={isDarkMode ? '#A5B4FC' : '#6366F1'} />
+                        <Text className={`text-2xl font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-gray-800'} text-center`}>
+                            {getTranslatedText("How it Works")}
+                        </Text>
+                        <Text className={`mt-2 text-md ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-center`}>
+                            {getTranslatedText("Take or upload a picture of a plant and we'll use our AI to identify it for you.")}
+                        </Text>
+                    </View>
+                )}
+
+                <View className="w-full max-w-sm px-4">
                     <View className="flex-row w-full justify-between items-center mb-4">
                         <TouchableOpacity
-                            className={`${buttonClassName} ${secondaryButtonColor} w-[48%]`}
+                            className={`${buttonClassName} bg-blue-500 w-[48%]`}
                             onPress={handlePickImage}
+                            activeOpacity={0.7}
                         >
                             <Ionicons name="image-outline" size={20} color="white" />
-                            <Text className="text-white font-semibold text-lg ml-2">
+                            <Text className="text-white font-semibold text-base ml-2">
                                 {getTranslatedText("Pick from Gallery")}
                             </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            className={`${buttonClassName} ${secondaryButtonColor} w-[48%]`}
+                            className={`${buttonClassName} bg-green-500 w-[48%]`}
                             onPress={handleTakePhoto}
+                            activeOpacity={0.7}
                         >
                             <Ionicons name="camera-outline" size={20} color="white" />
-                            <Text className="text-white font-semibold text-lg ml-2">
+                            <Text className="text-white font-semibold text-base ml-2">
                                 {getTranslatedText("Take Photo")}
                             </Text>
                         </TouchableOpacity>
@@ -158,7 +171,7 @@ const IdentifyScreen = () => {
                 </View>
 
                 {imageUri && (
-                    <View className="items-center mb-5">
+                    <View className="items-center mb-5 mt-5">
                         <Image
                             source={{ uri: imageUri }}
                             className="w-64 h-64 rounded-xl shadow-lg border border-gray-300"
@@ -197,7 +210,7 @@ const IdentifyScreen = () => {
 
                             {identificationResult.scientificName !== getTranslatedText("No species found.") && identificationResult.scientificName !== getTranslatedText("Error during identification.") && (
                                 <TouchableOpacity
-                                    className={`bg-green-500 py-3 px-6 rounded-md shadow-md mt-5`}
+                                    className={`bg-green-500 py-3 px-6 rounded-md shadow-md mt-5 w-full`}
                                     onPress={handleAddPlant}
                                 >
                                     <Text className="text-white font-semibold text-lg text-center">
@@ -207,7 +220,7 @@ const IdentifyScreen = () => {
                             )}
 
                             <TouchableOpacity
-                                className={`bg-red-500 py-3 px-6 rounded-md shadow-md mt-3`}
+                                className={`bg-red-500 py-3 px-6 rounded-md shadow-md mt-3 w-full`}
                                 onPress={handleReset}
                             >
                                 <Text className="text-white font-semibold text-lg text-center">
