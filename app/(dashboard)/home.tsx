@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import { useRouter } from 'expo-router';
 import * as Notifications from 'expo-notifications';
@@ -38,45 +38,72 @@ const Home = () => {
         }
     };
 
-    const handleLogout = async () => {
-        try {
-            await auth.signOut();
-            router.replace('/(auth)/login');
-        } catch (error) {
-            console.error("Logout failed:", error);
-            Alert.alert("Logout Failed", "Something went wrong.");
-        }
-    };
-
     return (
-        <SafeAreaView className="flex-1 bg-white">
-            <View className="flex-1 justify-center items-center p-6">
-                <Ionicons name="leaf-outline" size={120} color="#22C55E" />
-                <Text className="text-4xl font-extrabold text-green-700 mt-4">GreenScape</Text>
-                <Text className="text-lg mt-2 text-gray-600">
+        <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
+            <View className="flex-1 items-center p-6">
+                {/* Header Section */}
+                <View className="flex-row items-center justify-center w-full mt-8 mb-4">
+                    <Ionicons name="leaf-outline" size={60} color="#22C55E" />
+                    <Text className="text-4xl font-extrabold text-green-700 dark:text-green-500 ml-2">GreenScape</Text>
+                </View>
+                <Text className="text-lg mt-2 text-gray-600 dark:text-gray-300">
                     Hello, {user?.email || 'Guest'}!
                 </Text>
 
+                {/* Notification Banner */}
                 {notificationPermissionStatus === 'denied' && notificationBannerVisible && (
-                    <View className="absolute top-16 w-full p-4 mx-4 bg-yellow-100 border border-yellow-300 rounded-lg flex-row items-center justify-between shadow-md">
+                    <View className="absolute top-28 z-10 w-[95%] p-4 bg-yellow-100 border border-yellow-300 rounded-lg flex-row items-center justify-between shadow-md">
                         <View className="flex-row items-center flex-1">
                             <Ionicons name="warning-outline" size={24} color="#D97706" />
                             <Text className="text-yellow-700 ml-2 flex-wrap text-sm">
                                 Please enable notifications to receive plant care reminders.
                             </Text>
                         </View>
-                        <TouchableOpacity onPress={() => setNotificationBannerVisible(false)} className="ml-4">
+                        <TouchableOpacity onPress={() => setNotificationBannerVisible(false)} className="ml-4 p-1">
                             <Ionicons name="close-circle-outline" size={24} color="#D97706" />
                         </TouchableOpacity>
                     </View>
                 )}
 
-                <TouchableOpacity 
-                    onPress={handleLogout}
-                    className="bg-red-500 w-full max-w-sm p-4 rounded-lg mt-6 shadow-md"
-                >
-                    <Text className="text-white font-bold text-lg text-center">Logout</Text>
-                </TouchableOpacity>
+                {/* Navigation Grid */}
+                <View className="flex-row flex-wrap justify-center mt-12 w-full max-w-xl">
+                    {/* My Plants Card */}
+                    <TouchableOpacity
+                        onPress={() => router.push('/(dashboard)/plants')}
+                        className="w-40 h-40 m-2 rounded-2xl bg-green-500 justify-center items-center shadow-lg"
+                    >
+                        <Ionicons name="flower-outline" size={50} color="white" />
+                        <Text className="text-white text-lg font-bold mt-2">My Plants</Text>
+                    </TouchableOpacity>
+
+                    {/* Identify Card */}
+                    <TouchableOpacity
+                        onPress={() => router.push('/(dashboard)/identify')}
+                        className="w-40 h-40 m-2 rounded-2xl bg-blue-500 justify-center items-center shadow-lg"
+                    >
+                        <Ionicons name="scan-outline" size={50} color="white" />
+                        <Text className="text-white text-lg font-bold mt-2">Identify</Text>
+                    </TouchableOpacity>
+
+                    {/* Profile Card */}
+                    <TouchableOpacity
+                        onPress={() => router.push('/(dashboard)/profile')}
+                        className="w-40 h-40 m-2 rounded-2xl bg-purple-500 justify-center items-center shadow-lg"
+                    >
+                        <Ionicons name="person-circle-outline" size={50} color="white" />
+                        <Text className="text-white text-lg font-bold mt-2">Profile</Text>
+                    </TouchableOpacity>
+
+                    {/* Settings Card */}
+                    <TouchableOpacity
+                        onPress={() => router.push('/(dashboard)/settings')}
+                        className="w-40 h-40 m-2 rounded-2xl bg-gray-500 justify-center items-center shadow-lg"
+                    >
+                        <Ionicons name="settings-outline" size={50} color="white" />
+                        <Text className="text-white text-lg font-bold mt-2">Settings</Text>
+                    </TouchableOpacity>
+                </View>
+
             </View>
         </SafeAreaView>
     );
