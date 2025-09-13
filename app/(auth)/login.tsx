@@ -54,11 +54,22 @@ const Login = () => {
                     <Text className='text-center text-2xl text-white'>Login</Text>
                 )}
             </TouchableOpacity>
-            <Pressable onPress={() => router.push('../(auth)/register')}>
-                <Text className="text-center text-green-600 mt-4">
-                    Don't have an account? Sign Up
-                </Text>
-            </Pressable>
+            
+            {/* --- Start of new "Forgot Password?" link --- */}
+            <View className="flex-row justify-between mt-4">
+                <Pressable onPress={() => router.push('../(auth)/forgot-password')}>
+                    <Text className="text-sm text-green-600">
+                        Forgot Password?
+                    </Text>
+                </Pressable>
+                {/* --- End of new "Forgot Password?" link --- */}
+
+                <Pressable onPress={() => router.push('../(auth)/register')}>
+                    <Text className="text-sm text-green-600">
+                        Don't have an account? Sign Up
+                    </Text>
+                </Pressable>
+            </View>
         </View>
     );
 };
