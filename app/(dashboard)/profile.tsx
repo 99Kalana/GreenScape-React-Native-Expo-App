@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import React, { useState } from 'react';
 import { getAuth, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { router } from 'expo-router';
@@ -102,103 +102,111 @@ const Profile = () => {
     const placeholderColor = isDarkMode ? '#a1a1aa' : '#9ca3af';
 
     return (
-        <SafeAreaView className={`flex-1 p-6 ${containerClassName}`}>
-            <View className="flex-1 justify-start items-center w-full mt-10">
-                <View className="mb-8 items-center">
-                    <Ionicons name="person-circle-outline" size={100} color="#22C55E" />
-                    <Text className={`text-3xl font-bold ${textClassName} mt-2`}>{getTranslatedText("Profile")}</Text>
-                    {auth.currentUser && (
-                        <Text className={`text-gray-600 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>{auth.currentUser.email}</Text>
-                    )}
-                </View>
+        <KeyboardAvoidingView
+            className={`flex-1 ${containerClassName}`}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 0}
+        >
+            <SafeAreaView className={`flex-1 p-6 ${containerClassName}`}>
+                <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-start', alignItems: 'center' }}>
+                    <View className="flex-1 justify-start items-center w-full mt-10">
+                        <View className="mb-8 items-center">
+                            <Ionicons name="person-circle-outline" size={100} color="#22C55E" />
+                            <Text className={`text-3xl font-bold ${textClassName} mt-2`}>{getTranslatedText("Profile")}</Text>
+                            {auth.currentUser && (
+                                <Text className={`text-gray-600 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>{auth.currentUser.email}</Text>
+                            )}
+                        </View>
 
-                {/* Password Change Form */}
-                <View className={`w-full max-w-sm p-6 rounded-lg shadow-md border ${cardClassName}`}>
-                    <Text className={`text-lg font-bold ${textClassName} mb-4`}>{getTranslatedText("Change Password")}</Text>
+                        {/* Password Change Form */}
+                        <View className={`w-full max-w-sm p-6 rounded-lg shadow-md border ${cardClassName}`}>
+                            <Text className={`text-lg font-bold ${textClassName} mb-4`}>{getTranslatedText("Change Password")}</Text>
 
-                    {/* Old Password Input with eye icon */}
-                    <View className="relative w-full mb-3">
-                        <TextInput
-                            className={`w-full p-3 pr-10 rounded-md border focus:border-green-500 ${inputClassName}`}
-                            placeholder={getTranslatedText("Current Password")}
-                            secureTextEntry={!showOldPassword}
-                            value={oldPassword}
-                            onChangeText={setOldPassword}
-                            placeholderTextColor={placeholderColor}
-                        />
-                        <TouchableOpacity
-                            className="absolute right-3 top-3"
-                            onPress={() => setShowOldPassword(!showOldPassword)}
-                        >
-                            <Ionicons name={showOldPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={isDarkMode ? '#a1a1aa' : '#9ca3af'} />
-                        </TouchableOpacity>
+                            {/* Old Password Input with eye icon */}
+                            <View className="relative w-full mb-3">
+                                <TextInput
+                                    className={`w-full p-3 pr-10 rounded-md border focus:border-green-500 ${inputClassName}`}
+                                    placeholder={getTranslatedText("Current Password")}
+                                    secureTextEntry={!showOldPassword}
+                                    value={oldPassword}
+                                    onChangeText={setOldPassword}
+                                    placeholderTextColor={placeholderColor}
+                                />
+                                <TouchableOpacity
+                                    className="absolute right-3 top-3"
+                                    onPress={() => setShowOldPassword(!showOldPassword)}
+                                >
+                                    <Ionicons name={showOldPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={isDarkMode ? '#a1a1aa' : '#9ca3af'} />
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* New Password Input with eye icon */}
+                            <View className="relative w-full mb-3">
+                                <TextInput
+                                    className={`w-full p-3 pr-10 rounded-md border focus:border-green-500 ${inputClassName}`}
+                                    placeholder={getTranslatedText("New Password")}
+                                    secureTextEntry={!showNewPassword}
+                                    value={newPassword}
+                                    onChangeText={setNewPassword}
+                                    placeholderTextColor={placeholderColor}
+                                />
+                                <TouchableOpacity
+                                    className="absolute right-3 top-3"
+                                    onPress={() => setShowNewPassword(!showNewPassword)}
+                                >
+                                    <Ionicons name={showNewPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={isDarkMode ? '#a1a1aa' : '#9ca3af'} />
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Confirm Password Input with eye icon */}
+                            <View className="relative w-full mb-4">
+                                <TextInput
+                                    className={`w-full p-3 pr-10 rounded-md border focus:border-green-500 ${inputClassName}`}
+                                    placeholder={getTranslatedText("Confirm New Password")}
+                                    secureTextEntry={!showConfirmPassword}
+                                    value={confirmPassword}
+                                    onChangeText={setConfirmPassword}
+                                    placeholderTextColor={placeholderColor}
+                                />
+                                <TouchableOpacity
+                                    className="absolute right-3 top-3"
+                                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                                >
+                                    <Ionicons name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={isDarkMode ? '#a1a1aa' : '#9ca3af'} />
+                                </TouchableOpacity>
+                            </View>
+
+                            {error ? (
+                                <Text className="text-red-500 text-sm mb-2">{error}</Text>
+                            ) : null}
+
+                            {success ? (
+                                <Text className="text-green-500 text-sm mb-2">{success}</Text>
+                            ) : null}
+
+                            <TouchableOpacity
+                                className={`w-full py-3 rounded-lg flex items-center justify-center ${isLoading ? 'bg-green-300' : 'bg-green-500'}`}
+                                onPress={handleInitialChangePassword}
+                                disabled={isLoading}
+                            >
+                                <Text className="text-white font-bold text-base">
+                                    {isLoading ? getTranslatedText('Updating...') : getTranslatedText('Change Password')}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Information Card */}
+                        <View className={`w-full max-w-sm mt-6 p-6 rounded-lg shadow-md border flex-row items-center ${cardClassName}`}>
+                            <Ionicons name="shield-checkmark-outline" size={30} color="#22C55E" />
+                            <View className="ml-4 flex-1">
+                                <Text className={`text-lg font-bold ${textClassName}`}>{getTranslatedText("Update your password")}</Text>
+                                <Text className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>{getTranslatedText("Keep your account secure by regularly updating your password.")}</Text>
+                            </View>
+                        </View>
                     </View>
-
-                    {/* New Password Input with eye icon */}
-                    <View className="relative w-full mb-3">
-                        <TextInput
-                            className={`w-full p-3 pr-10 rounded-md border focus:border-green-500 ${inputClassName}`}
-                            placeholder={getTranslatedText("New Password")}
-                            secureTextEntry={!showNewPassword}
-                            value={newPassword}
-                            onChangeText={setNewPassword}
-                            placeholderTextColor={placeholderColor}
-                        />
-                        <TouchableOpacity
-                            className="absolute right-3 top-3"
-                            onPress={() => setShowNewPassword(!showNewPassword)}
-                        >
-                            <Ionicons name={showNewPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={isDarkMode ? '#a1a1aa' : '#9ca3af'} />
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Confirm Password Input with eye icon */}
-                    <View className="relative w-full mb-4">
-                        <TextInput
-                            className={`w-full p-3 pr-10 rounded-md border focus:border-green-500 ${inputClassName}`}
-                            placeholder={getTranslatedText("Confirm New Password")}
-                            secureTextEntry={!showConfirmPassword}
-                            value={confirmPassword}
-                            onChangeText={setConfirmPassword}
-                            placeholderTextColor={placeholderColor}
-                        />
-                        <TouchableOpacity
-                            className="absolute right-3 top-3"
-                            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                        >
-                            <Ionicons name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={isDarkMode ? '#a1a1aa' : '#9ca3af'} />
-                        </TouchableOpacity>
-                    </View>
-
-                    {error ? (
-                        <Text className="text-red-500 text-sm mb-2">{error}</Text>
-                    ) : null}
-
-                    {success ? (
-                        <Text className="text-green-500 text-sm mb-2">{success}</Text>
-                    ) : null}
-
-                    <TouchableOpacity
-                        className={`w-full py-3 rounded-lg flex items-center justify-center ${isLoading ? 'bg-green-300' : 'bg-green-500'}`}
-                        onPress={handleInitialChangePassword}
-                        disabled={isLoading}
-                    >
-                        <Text className="text-white font-bold text-base">
-                            {isLoading ? getTranslatedText('Updating...') : getTranslatedText('Change Password')}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Information Card */}
-                <View className={`w-full max-w-sm mt-6 p-6 rounded-lg shadow-md border flex-row items-center ${cardClassName}`}>
-                    <Ionicons name="shield-checkmark-outline" size={30} color="#22C55E" />
-                    <View className="ml-4 flex-1">
-                        <Text className={`text-lg font-bold ${textClassName}`}>{getTranslatedText("Update your password")}</Text>
-                        <Text className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>{getTranslatedText("Keep your account secure by regularly updating your password.")}</Text>
-                    </View>
-                </View>
-            </View>
-
+                </ScrollView>
+            </SafeAreaView>
+            
             {/* Confirmation Modal */}
             <Modal
                 animationType="fade"
@@ -229,7 +237,7 @@ const Profile = () => {
                     </View>
                 </View>
             </Modal>
-        </SafeAreaView>
+        </KeyboardAvoidingView>
     );
 };
 
