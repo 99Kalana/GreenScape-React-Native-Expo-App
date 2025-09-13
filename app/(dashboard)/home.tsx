@@ -152,7 +152,7 @@ const Home = () => {
                         {/* About this App Article */}
                         <View className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                             <Image
-                                source={{ uri: 'https://placehold.co/600x400/22C55E/ffffff?text=GreenScape+Logo' }}
+                                source={require('@/assets/plant-logo.png')}
                                 className="w-full h-40 rounded-lg mb-4"
                             />
                             <Text className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
