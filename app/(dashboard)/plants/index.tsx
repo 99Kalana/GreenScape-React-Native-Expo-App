@@ -41,6 +41,7 @@ const PlantsScreen = () => {
         "Watered!": { "English": "Watered!", "Spanish": "¡Regado!", "French": "Arrosé !", "German": "Gegossen!" },
         "Fertilized!": { "English": "Fertilized!", "Spanish": "¡Fertilizado!", "French": "Fertilisé !", "German": "Gedüngt!" },
         "Plant deleted successfully.": { "English": "Plant deleted successfully.", "Spanish": "Planta eliminada con éxito.", "French": "Plante supprimée avec succès.", "German": "Pflanze erfolgreich gelöscht." },
+        "Notifications": { "English": "Notifications", "Spanish": "Notificaciones", "French": "Notifications", "German": "Benachrichtigungen" },
     };
 
     const getTranslatedText = (key: string) => {
@@ -218,6 +219,14 @@ const PlantsScreen = () => {
                     onChangeText={setSearchQuery}
                 />
             </View>
+            
+            {/* Notifications button */}
+            <TouchableOpacity
+                className="absolute top-16 right-5 z-10 p-2"
+                onPress={() => router.push("/(dashboard)/plants/notifications")}
+            >
+                <Ionicons name="notifications-outline" size={28} color={headerIconColor} />
+            </TouchableOpacity>
 
             <View className="absolute bottom-5 right-5 z-10">
                 <Pressable

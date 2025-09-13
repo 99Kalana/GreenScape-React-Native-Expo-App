@@ -1,14 +1,14 @@
 import React from 'react';
 import { Stack } from 'expo-router';
-import { useLanguage } from '../../../context/LanguageContext';
-import { useTheme } from '../../../context/ThemeContext';
+import { useLanguage } from '../../../../context/LanguageContext';
+import { useTheme } from '../../../../context/ThemeContext';
 
-const PlantsLayout = () => {
+const NotificationsLayout = () => {
     const { language } = useLanguage();
     const { isDarkMode } = useTheme();
 
     const translations: { [key: string]: { [lang: string]: string } } = {
-        "Plant Details": { "English": "Plant Details", "Spanish": "Detalles de la planta", "French": "Détails de la plante", "German": "Pflanzendetails" },
+        "Notifications": { "English": "Notifications", "Spanish": "Notificaciones", "French": "Notifications", "German": "Benachrichtigungen" },
     };
 
     const getTranslatedText = (key: string) => {
@@ -22,19 +22,18 @@ const PlantsLayout = () => {
     const headerTintColor = isDarkMode ? '#FFFFFF' : '#000000';
 
     return (
-        <Stack screenOptions={{ animation: "slide_from_right" }}>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack>
             <Stack.Screen
-                name="[id]"
+                name="index"
                 options={{
-                    title: getTranslatedText("Plant Details"),
+                    title: getTranslatedText("Notifications"),
+                    headerShown: true,
                     headerStyle: headerStyle,
                     headerTintColor: headerTintColor,
                 }}
             />
-            <Stack.Screen name="notifications" options={{ headerShown: false }} />
         </Stack>
     );
 };
 
-export default PlantsLayout;
+export default NotificationsLayout;
