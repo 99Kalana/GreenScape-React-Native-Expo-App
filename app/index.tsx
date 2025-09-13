@@ -1,45 +1,55 @@
-import { View, Text, ActivityIndicator } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { View, Text, ActivityIndicator, Image, Animated } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 
-const index = () => {
-    const router = useRouter();
-    const { user, loading } = useAuth();
-    // State to track when the welcome screen timer has finished
-    const [isSplashComplete, setSplashComplete] = useState(false);
+const Index = () => {
+  const router = useRouter();
+  const { user, loading } = useAuth();
+  const [isSplashComplete, setSplashComplete] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current; // For fade-in animation
 
-    useEffect(() => {
-        // Set a timer to finish the splash screen after 3 seconds
-        const timer = setTimeout(() => {
-            setSplashComplete(true);
-        }, 3000);
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1200,
+      useNativeDriver: true,
+    }).start();
 
-        // Clear the timer when the component unmounts
-        return () => clearTimeout(timer);
-    }, []);
+    const timer = setTimeout(() => setSplashComplete(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
-    useEffect(() => {
-        // Only navigate once the splash screen is complete AND the authentication status has loaded
-        if (isSplashComplete && !loading) {
-            if (user) {
-                // If the user is logged in, navigate to the home screen
-                router.replace("/home");
-            } else {
-                // Otherwise, navigate to the login screen
-                router.replace("/login");
-            }
-        }
-    }, [isSplashComplete, loading, user]);
+  useEffect(() => {
+    if (isSplashComplete && !loading) {
+      if (user) router.replace("/home");
+      else router.replace("/login");
+    }
+  }, [isSplashComplete, loading, user]);
 
-    // We will always render the welcome screen while waiting for the timer or authentication to finish
-    return (
-        <View className="flex-1 justify-center items-center bg-emerald-50 p-4">
-            <Text className="text-5xl font-bold text-green-800 mb-2">GreenScape 🌱</Text>
-            <Text className="text-lg text-emerald-400 mb-5 font-semibold">Your personal plant care companion</Text>
-            <ActivityIndicator size="large" color="#16a34a" className="mt-10" />
-        </View>
-    );
+  return (
+    <View className="flex-1 justify-center items-center p-4"
+          style={{
+            backgroundColor: '#DFF6E4', // soft green background
+          }}
+    >
+      <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>
+        {/* Optional Plant Logo */}
+        <Image
+          source={require('@/assets/plant-logo.png')} 
+          style={{ width: 100, height: 100, marginBottom: 20, shadowColor: '#000', shadowOpacity: 0.1, shadowOffset: { width: 2, height: 2 }, shadowRadius: 4 }}
+          resizeMode="contain"
+        />
+        <Text className="text-5xl font-bold text-green-800 mb-2">
+          GreenScape 🌱
+        </Text>
+        <Text className="text-lg text-green-600 mb-5 font-semibold text-center">
+          Your personal plant care companion
+        </Text>
+      </Animated.View>
+      <ActivityIndicator size="large" color="#16a34a" className="mt-10" />
+    </View>
+  );
 };
 
-export default index;
+export default Index;
