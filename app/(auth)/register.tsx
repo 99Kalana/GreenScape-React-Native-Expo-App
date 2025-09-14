@@ -1,8 +1,9 @@
-import { View, Text, TextInput, TouchableOpacity, Pressable, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Pressable, ActivityIndicator, Alert, StyleSheet, Image } from 'react-native';
 import React, { useState } from "react";
 import { useRouter } from 'expo-router';
 import { register } from '@/services/authService';
 import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const Register = () => {
   const router = useRouter();
@@ -50,59 +51,191 @@ const Register = () => {
   };
 
   return (
-    <View className="flex-1 bg-gray-100 justify-center p-6">
-      <Text className="text-3xl font-bold mb-6 text-green-600 text-center">Join GreenScape</Text>
-
-      {errorMessage && (
-        <View className="bg-yellow-100 border border-yellow-400 rounded-lg p-3 mb-4">
-          <Text className="text-yellow-800 text-center">{errorMessage}</Text>
+    <LinearGradient
+      colors={['#A8E063', '#56AB2F']}
+      style={styles.container}
+    >
+      <View style={styles.card}>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('@/assets/plant-logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.welcomeText}>
+            Join GreenScape
+          </Text>
         </View>
-      )}
 
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        placeholderTextColor="#9CA3AF"
-        className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 mb-4"
-      />
+        {errorMessage && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        )}
 
-      <View className="relative mb-4">
         <TextInput
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={!showPassword}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
           placeholderTextColor="#9CA3AF"
-          className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 pr-12"
+          style={styles.textInput}
         />
-        <Pressable
-          onPress={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-1/2 -translate-y-1/2"
+
+        <View style={styles.passwordContainer}>
+          <TextInput
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            placeholderTextColor="#9CA3AF"
+            style={styles.passwordInput}
+          />
+          <Pressable
+            onPress={() => setShowPassword(!showPassword)}
+            style={styles.eyeIcon}
+          >
+            <Feather name={showPassword ? "eye-off" : "eye"} size={24} color="#718096" />
+          </Pressable>
+        </View>
+
+        <TouchableOpacity
+          onPress={handleRegister}
+          disabled={isLoadingReg}
+          style={styles.registerButton}
         >
-          <Feather name={showPassword ? "eye-off" : "eye"} size={24} color="#718096" />
+          <LinearGradient
+            colors={['#56AB2F', '#A8E063']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={styles.registerButtonGradient}
+          >
+            {isLoadingReg ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.registerButtonText}>Register</Text>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <Pressable onPress={() => router.back()}>
+          <Text style={styles.loginText}>
+            Already have an account? <Text style={styles.loginLink}>Login</Text>
+          </Text>
         </Pressable>
       </View>
-
-      <TouchableOpacity
-        onPress={handleRegister}
-        disabled={isLoadingReg}
-        className="bg-green-500 rounded-lg p-4 flex-row justify-center items-center mb-4"
-      >
-        {isLoadingReg ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text className="text-white text-lg font-semibold text-center">Register</Text>
-        )}
-      </TouchableOpacity>
-
-      <Pressable onPress={() => router.back()}>
-        <Text className="text-green-600 text-center text-base font-medium">Already have an account? Login</Text>
-      </Pressable>
-    </View>
+    </LinearGradient>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  card: {
+    width: '100%',
+    backgroundColor: '#fff',
+    padding: 24,
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+  },
+  welcomeText: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    marginTop: 8,
+    color: '#14532d', // deep green
+    textAlign: 'center',
+  },
+  errorContainer: {
+    backgroundColor: '#fee2e2', // light red
+    borderColor: '#fca5a5', // medium red
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#b91c1c', // dark red
+    textAlign: 'center',
+  },
+  textInput: {
+    backgroundColor: '#f3f4f6', // light gray
+    borderWidth: 2,
+    borderColor: 'transparent',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    color: '#1f2937', // gray 900
+    marginBottom: 16,
+  },
+  passwordContainer: {
+    position: 'relative',
+    marginBottom: 24,
+  },
+  passwordInput: {
+    backgroundColor: '#f3f4f6', // light gray
+    borderWidth: 2,
+    borderColor: 'transparent',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    color: '#1f2937', // gray 900
+    paddingRight: 48,
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 16,
+    top: '50%',
+    transform: [{ translateY: -12 }],
+  },
+  registerButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
+    shadowColor: '#14532d',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  registerButtonGradient: {
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  registerButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  loginText: {
+    color: '#4b5563', // gray 600
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  loginLink: {
+    color: '#22c55e', // green 600
+    fontWeight: 'bold',
+  },
+});
 
 export default Register;
