@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Pressable, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Pressable, StyleSheet, Alert } from 'react-native';
 import React, { useState } from "react";
 import { useRouter } from 'expo-router';
 import { forgotPassword } from '@/services/authService';
@@ -33,15 +33,14 @@ const ForgotPassword = () => {
   return (
     <LinearGradient
       colors={['#A8E063', '#56AB2F']}
-      className="flex-1 justify-center items-center p-6"
+      style={styles.container}
     >
-      <View className="bg-white w-full rounded-3xl p-8 shadow-2xl space-y-6">
-        {/* A simple icon to replace the missing image asset */}
-        <Text className="text-5xl text-green-700 text-center mb-4">🌱</Text>
-        <Text className="text-3xl font-bold text-green-800 text-center">
+      <View style={styles.card}>
+        <Text style={styles.logo}>🌱</Text>
+        <Text style={styles.title}>
           Forgot Password
         </Text>
-        <Text className="text-base text-gray-600 text-center">
+        <Text style={styles.subtitle}>
           Enter your email to receive a password reset link.
         </Text>
 
@@ -52,32 +51,32 @@ const ForgotPassword = () => {
           keyboardType="email-address"
           autoCapitalize="none"
           placeholderTextColor="#9CA3AF"
-          className="bg-gray-100 border border-gray-200 rounded-xl px-4 py-4 text-gray-900 focus:border-green-500"
+          style={styles.input}
         />
 
         <TouchableOpacity
           onPress={handlePasswordReset}
           disabled={isLoading}
-          className="w-full h-14 rounded-xl overflow-hidden shadow-lg"
+          style={styles.buttonContainer}
         >
           <LinearGradient
             colors={['#56AB2F', '#A8E063']}
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}
-            className="flex-1 flex-row justify-center items-center"
+            style={styles.gradientButton}
           >
             {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text className="text-white text-center text-lg font-semibold">
+              <Text style={styles.buttonText}>
                 Send Reset Link
               </Text>
             )}
           </LinearGradient>
         </TouchableOpacity>
 
-        <Pressable onPress={() => router.back()} className="mt-4">
-          <Text className="text-green-600 text-center text-base font-medium">
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>
             Back to Login
           </Text>
         </Pressable>
@@ -85,5 +84,95 @@ const ForgotPassword = () => {
     </LinearGradient>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  card: {
+    backgroundColor: 'white',
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 24,
+    padding: 32,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 8,
+    alignItems: 'center',
+  },
+  logo: {
+    fontSize: 48,
+    color: '#34d399',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#14532d',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6b7280',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  input: {
+    width: '100%',
+    backgroundColor: '#f3f4f6',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    color: '#1f2937',
+    marginBottom: 24,
+  },
+  buttonContainer: {
+    width: '100%',
+    height: 56,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#16a34a',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 6,
+  },
+  gradientButton: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  backButton: {
+    marginTop: 16,
+  },
+  backButtonText: {
+    color: '#16a34a',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+});
 
 export default ForgotPassword;
