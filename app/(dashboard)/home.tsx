@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const Home = () => {
     const router = useRouter();
@@ -69,103 +70,117 @@ const Home = () => {
     const bannerTextClassName = isDarkMode ? 'text-yellow-300' : 'text-yellow-700';
     const cardBgClassName = (color: string) => `${color}-500`;
 
-    return (
-        <SafeAreaView className={`flex-1 ${containerClassName}`}>
-            <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="flex-1 p-6">
-                <View className="flex-1 items-center">
-                    {/* Header Section */}
-                    <View className="flex-row items-center justify-center w-full mt-8 mb-4">
-                        <Ionicons name="leaf-outline" size={60} color="#22C55E" />
-                        <Text className={`text-4xl font-extrabold ml-2 ${headerTextClassName}`}>{getTranslatedHomeText("GreenScape")}</Text>
-                    </View>
-                    
-                    {/* Modern Greeting Section - Centered */}
-                    <View className={`p-4 rounded-xl shadow-md w-full max-w-lg mt-2 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} items-center`}>
-                        <Text className={`text-sm font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            {getTranslatedHomeText("Hello, ")}
-                        </Text>
-                        <Text className={`text-xl font-bold mt-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-                            {user?.email || 'Guest'}{getTranslatedHomeText("!")}
-                        </Text>
-                    </View>
+    // Define gradient colors based on the theme
+    const gradientColors = isDarkMode
+        ? ['#1f2937', '#111827'] as const // Dark theme gradient
+        : ['#e0ffe0', '#ffffff'] as const; // Light theme gradient
 
-                    {/* Notification Banner */}
-                    {notificationPermissionStatus === 'denied' && notificationBannerVisible && (
-                        <View className={`top-6 z-10 w-[95%] p-4 rounded-lg flex-row items-center justify-between shadow-md ${bannerBgClassName}`}>
-                            <View className="flex-row items-center flex-1">
-                                <Ionicons name="warning-outline" size={24} color={isDarkMode ? '#FCD34D' : '#D97706'} />
-                                <Text className={`ml-2 flex-wrap text-sm ${bannerTextClassName}`}>
-                                    {getTranslatedHomeText("Please enable notifications to receive plant care reminders.")}
-                                </Text>
+    return (
+        // The LinearGradient is now the top-level component, covering the entire screen
+        <LinearGradient
+            colors={gradientColors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="flex-1"
+        >
+            {/* SafeAreaView is now inside the gradient, providing correct padding for content */}
+            <SafeAreaView className="flex-1">
+                <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="flex-1 p-6">
+                    <View className="flex-1 items-center">
+                        {/* Header Section */}
+                        <View className="flex-row items-center justify-center w-full mt-8 mb-4">
+                            <Ionicons name="leaf-outline" size={60} color="#22C55E" />
+                            <Text className={`text-4xl font-extrabold ml-2 ${headerTextClassName}`}>{getTranslatedHomeText("GreenScape")}</Text>
+                        </View>
+                        
+                        {/* Modern Greeting Section - Centered */}
+                        <View className={`p-4 rounded-xl shadow-md w-full max-w-lg mt-2 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} items-center`}>
+                            <Text className={`text-sm font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {getTranslatedHomeText("Hello, ")}
+                            </Text>
+                            <Text className={`text-xl font-bold mt-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+                                {user?.email || 'Guest'}{getTranslatedHomeText("!")}
+                            </Text>
+                        </View>
+
+                        {/* Notification Banner */}
+                        {notificationPermissionStatus === 'denied' && notificationBannerVisible && (
+                            <View className={`top-6 z-10 w-[95%] p-4 rounded-lg flex-row items-center justify-between shadow-md ${bannerBgClassName}`}>
+                                <View className="flex-row items-center flex-1">
+                                    <Ionicons name="warning-outline" size={24} color={isDarkMode ? '#FCD34D' : '#D97706'} />
+                                    <Text className={`ml-2 flex-wrap text-sm ${bannerTextClassName}`}>
+                                        {getTranslatedHomeText("Please enable notifications to receive plant care reminders.")}
+                                    </Text>
+                                </View>
+                                <TouchableOpacity onPress={() => setNotificationBannerVisible(false)} className="ml-4 p-1">
+                                    <Ionicons name="close-circle-outline" size={24} color={isDarkMode ? '#FCD34D' : '#D97706'} />
+                                </TouchableOpacity>
                             </View>
-                            <TouchableOpacity onPress={() => setNotificationBannerVisible(false)} className="ml-4 p-1">
-                                <Ionicons name="close-circle-outline" size={24} color={isDarkMode ? '#FCD34D' : '#D97706'} />
+                        )}
+
+                        {/* Navigation Grid */}
+                        <View className="flex-row flex-wrap justify-center mt-12 w-full max-w-xl">
+                            {/* My Plants Card */}
+                            <TouchableOpacity
+                                onPress={() => router.push('/(dashboard)/plants')}
+                                className={`w-40 h-40 m-2 rounded-2xl bg-green-500 justify-center items-center shadow-lg`}
+                            >
+                                <Ionicons name="flower-outline" size={50} color="white" />
+                                <Text className="text-white text-lg font-bold mt-2">{getTranslatedHomeText("My Plants")}</Text>
+                            </TouchableOpacity>
+
+                            {/* Identify Card */}
+                            <TouchableOpacity
+                                onPress={() => router.push('/(dashboard)/identify')}
+                                className={`w-40 h-40 m-2 rounded-2xl bg-blue-500 justify-center items-center shadow-lg`}
+                            >
+                                <Ionicons name="scan-outline" size={50} color="white" />
+                                <Text className="text-white text-lg font-bold mt-2">{getTranslatedHomeText("Identify")}</Text>
+                            </TouchableOpacity>
+
+                            {/* Profile Card */}
+                            <TouchableOpacity
+                                onPress={() => router.push('/(dashboard)/profile')}
+                                className={`w-40 h-40 m-2 rounded-2xl bg-purple-500 justify-center items-center shadow-lg`}
+                            >
+                                <Ionicons name="person-circle-outline" size={50} color="white" />
+                                <Text className="text-white text-lg font-bold mt-2">{getTranslatedHomeText("Profile")}</Text>
+                            </TouchableOpacity>
+
+                            {/* Settings Card */}
+                            <TouchableOpacity
+                                onPress={() => router.push('/(dashboard)/settings')}
+                                className={`w-40 h-40 m-2 rounded-2xl bg-gray-500 justify-center items-center shadow-lg`}
+                            >
+                                <Ionicons name="settings-outline" size={50} color="white" />
+                                <Text className="text-white text-lg font-bold mt-2">{getTranslatedHomeText("Settings")}</Text>
                             </TouchableOpacity>
                         </View>
-                    )}
 
-                    {/* Navigation Grid */}
-                    <View className="flex-row flex-wrap justify-center mt-12 w-full max-w-xl">
-                        {/* My Plants Card */}
-                        <TouchableOpacity
-                            onPress={() => router.push('/(dashboard)/plants')}
-                            className={`w-40 h-40 m-2 rounded-2xl bg-green-500 justify-center items-center shadow-lg`}
-                        >
-                            <Ionicons name="flower-outline" size={50} color="white" />
-                            <Text className="text-white text-lg font-bold mt-2">{getTranslatedHomeText("My Plants")}</Text>
-                        </TouchableOpacity>
-
-                        {/* Identify Card */}
-                        <TouchableOpacity
-                            onPress={() => router.push('/(dashboard)/identify')}
-                            className={`w-40 h-40 m-2 rounded-2xl bg-blue-500 justify-center items-center shadow-lg`}
-                        >
-                            <Ionicons name="scan-outline" size={50} color="white" />
-                            <Text className="text-white text-lg font-bold mt-2">{getTranslatedHomeText("Identify")}</Text>
-                        </TouchableOpacity>
-
-                        {/* Profile Card */}
-                        <TouchableOpacity
-                            onPress={() => router.push('/(dashboard)/profile')}
-                            className={`w-40 h-40 m-2 rounded-2xl bg-purple-500 justify-center items-center shadow-lg`}
-                        >
-                            <Ionicons name="person-circle-outline" size={50} color="white" />
-                            <Text className="text-white text-lg font-bold mt-2">{getTranslatedHomeText("Profile")}</Text>
-                        </TouchableOpacity>
-
-                        {/* Settings Card */}
-                        <TouchableOpacity
-                            onPress={() => router.push('/(dashboard)/settings')}
-                            className={`w-40 h-40 m-2 rounded-2xl bg-gray-500 justify-center items-center shadow-lg`}
-                        >
-                            <Ionicons name="settings-outline" size={50} color="white" />
-                            <Text className="text-white text-lg font-bold mt-2">{getTranslatedHomeText("Settings")}</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* About Section */}
-                    <View className={`w-full max-w-lg mt-12 p-4 rounded-xl shadow-md ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                        <Text className={`text-2xl font-bold mb-4 text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-                            {getTranslatedHomeText("About GreenScape")}
-                        </Text>
-                        
-                        {/* About this App Article */}
-                        <View className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                            <Image
-                                source={require('@/assets/plant-logo.png')}
-                                className="w-full h-40 rounded-lg mb-4"
-                            />
-                            <Text className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-                                {getTranslatedHomeText("About this App")}
+                        {/* About Section */}
+                        <View className={`w-full max-w-lg mt-12 p-4 rounded-xl shadow-md ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                            <Text className={`text-2xl font-bold mb-4 text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+                                {getTranslatedHomeText("About GreenScape")}
                             </Text>
-                            <Text className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                {getTranslatedHomeText("GreenScape is your personal plant care companion, designed to help you nurture your plants and connect with nature. With features like plant identification, care reminders, and a personal plant journal, we make it easy to bring a little more green into your life.")}
-                            </Text>
+                            
+                            {/* About this App Article */}
+                            <View className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                                <Image
+                                    source={require('@/assets/plant-logo.png')}
+                                    className="w-full h-40 rounded-lg mb-4"
+                                />
+                                <Text className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+                                    {getTranslatedHomeText("About this App")}
+                                </Text>
+                                <Text className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    {getTranslatedHomeText("GreenScape is your personal plant care companion, designed to help you nurture your plants and connect with nature. With features like plant identification, care reminders, and a personal plant journal, we make it easy to bring a little more green into your life.")}
+                                </Text>
+                            </View>
                         </View>
                     </View>
-                </View>
-            </ScrollView>
-        </SafeAreaView>
+                </ScrollView>
+            </SafeAreaView>
+        </LinearGradient>
     );
 };
 
