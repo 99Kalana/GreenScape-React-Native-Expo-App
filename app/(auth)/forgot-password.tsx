@@ -2,6 +2,7 @@ import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Pressable, 
 import React, { useState } from "react";
 import { useRouter } from 'expo-router';
 import { forgotPassword } from '@/services/authService';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const ForgotPassword = () => {
   const router = useRouter();
@@ -30,41 +31,58 @@ const ForgotPassword = () => {
   };
 
   return (
-    <View className="flex-1 bg-gray-100 justify-center p-6">
-      <Text className="text-2xl font-bold mb-6 text-green-600 text-center">
-        Forgot Password
-      </Text>
-
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        placeholderTextColor="#9CA3AF"
-        className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 mb-4"
-      />
-
-      <TouchableOpacity
-        onPress={handlePasswordReset}
-        disabled={isLoading}
-        className="bg-green-500 rounded-lg p-4 flex-row justify-center items-center mb-4"
-      >
-        {isLoading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text className="text-white text-center text-lg font-semibold">
-            Send Reset Link
-          </Text>
-        )}
-      </TouchableOpacity>
-
-      <Pressable onPress={() => router.back()} className="mt-4">
-        <Text className="text-green-600 text-center text-base font-medium">
-          Back to Login
+    <LinearGradient
+      colors={['#A8E063', '#56AB2F']}
+      className="flex-1 justify-center items-center p-6"
+    >
+      <View className="bg-white w-full rounded-3xl p-8 shadow-2xl space-y-6">
+        {/* A simple icon to replace the missing image asset */}
+        <Text className="text-5xl text-green-700 text-center mb-4">🌱</Text>
+        <Text className="text-3xl font-bold text-green-800 text-center">
+          Forgot Password
         </Text>
-      </Pressable>
-    </View>
+        <Text className="text-base text-gray-600 text-center">
+          Enter your email to receive a password reset link.
+        </Text>
+
+        <TextInput
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          placeholderTextColor="#9CA3AF"
+          className="bg-gray-100 border border-gray-200 rounded-xl px-4 py-4 text-gray-900 focus:border-green-500"
+        />
+
+        <TouchableOpacity
+          onPress={handlePasswordReset}
+          disabled={isLoading}
+          className="w-full h-14 rounded-xl overflow-hidden shadow-lg"
+        >
+          <LinearGradient
+            colors={['#56AB2F', '#A8E063']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            className="flex-1 flex-row justify-center items-center"
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text className="text-white text-center text-lg font-semibold">
+                Send Reset Link
+              </Text>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <Pressable onPress={() => router.back()} className="mt-4">
+          <Text className="text-green-600 text-center text-base font-medium">
+            Back to Login
+          </Text>
+        </Pressable>
+      </View>
+    </LinearGradient>
   );
 };
 
