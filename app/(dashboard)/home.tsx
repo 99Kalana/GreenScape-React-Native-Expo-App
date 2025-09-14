@@ -89,7 +89,7 @@ const Home = () => {
                     <View className="flex-1 items-center">
                         {/* Header Section */}
                         <View className="flex-row items-center justify-center w-full mt-8 mb-4">
-                            <Ionicons name="leaf-outline" size={60} color="#22C55E" />
+                            <Ionicons name="leaf" size={60} color="#22C55E" />
                             <Text className={`text-4xl font-extrabold ml-2 ${headerTextClassName}`}>{getTranslatedHomeText("GreenScape")}</Text>
                         </View>
                         
