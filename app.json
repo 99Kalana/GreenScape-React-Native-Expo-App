@@ -4,7 +4,7 @@
     "slug": "GreenScape-App",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/GreenScape-logo.png",
     "scheme": "greenscapeapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
