@@ -2,6 +2,7 @@ import { View, Text, ActivityIndicator, Image, Animated } from 'react-native';
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
+import { LinearGradient } from 'expo-linear-gradient'; // Import LinearGradient
 
 const Index = () => {
   const router = useRouter();
@@ -28,27 +29,26 @@ const Index = () => {
   }, [isSplashComplete, loading, user]);
 
   return (
-    <View className="flex-1 justify-center items-center p-4"
-          style={{
-            backgroundColor: '#DFF6E4', // soft green background
-          }}
+    <LinearGradient
+      colors={['#A8E063', '#56AB2F']} // A fresh, vibrant green gradient
+      style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16 }}
     >
       <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>
         {/* Optional Plant Logo */}
         <Image
-          source={require('@/assets/plant-logo.png')} 
+          source={require('@/assets/plant-logo.png')}
           style={{ width: 100, height: 100, marginBottom: 20, shadowColor: '#000', shadowOpacity: 0.1, shadowOffset: { width: 2, height: 2 }, shadowRadius: 4 }}
           resizeMode="contain"
         />
-        <Text className="text-5xl font-bold text-green-800 mb-2">
+        <Text className="text-5xl font-bold text-white mb-2">
           GreenScape 🌱
         </Text>
-        <Text className="text-lg text-green-600 mb-5 font-semibold text-center">
+        <Text className="text-lg text-white mb-5 font-semibold text-center">
           Your personal plant care companion
         </Text>
       </Animated.View>
-      <ActivityIndicator size="large" color="#16a34a" className="mt-10" />
-    </View>
+      <ActivityIndicator size="large" color="#ffffff" className="mt-10" />
+    </LinearGradient>
   );
 };
 
