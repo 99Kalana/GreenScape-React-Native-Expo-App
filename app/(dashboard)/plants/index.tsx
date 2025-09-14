@@ -1,4 +1,4 @@
-import { View, Text, Button, Image, ActivityIndicator, Alert, TouchableOpacity, ScrollView, TextInput, Pressable } from "react-native";
+import { View, Text, StyleSheet, Image, ActivityIndicator, Alert, TouchableOpacity, ScrollView, TextInput, Pressable } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -11,7 +11,7 @@ import { useLanguage } from '../../../context/LanguageContext';
 import { useTheme } from '../../../context/ThemeContext';
 import * as Notifications from 'expo-notifications';
 import { DateTriggerInput } from 'expo-notifications';
-
+import { LinearGradient } from 'expo-linear-gradient';
 
 const PlantsScreen = () => {
     const [plants, setPlants] = useState<Plant[]>([]);
@@ -47,20 +47,6 @@ const PlantsScreen = () => {
     const getTranslatedText = (key: string) => {
         return translations[key]?.[language] || key;
     };
-
-    const containerClassName = isDarkMode ? 'bg-gray-900' : 'bg-white';
-    const headerTextClassName = isDarkMode ? 'text-green-500' : 'text-green-700';
-    const textClassName = isDarkMode ? 'text-gray-300' : 'text-gray-800';
-    const cardClassName = isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200';
-    const cardTitleClassName = isDarkMode ? 'text-green-400' : 'text-green-700';
-    const cardSubTextClassName = isDarkMode ? 'text-gray-400' : 'text-gray-600';
-    const editButtonColor = isDarkMode ? 'bg-yellow-500' : 'bg-yellow-400';
-    const deleteButtonColor = isDarkMode ? 'bg-red-600' : 'bg-red-500';
-    const waterButtonColor = isDarkMode ? 'bg-blue-600' : 'bg-blue-500';
-    const fertilizeButtonColor = isDarkMode ? 'bg-green-600' : 'bg-green-500';
-    const searchInputClassName = isDarkMode ? 'border-gray-600 bg-gray-700 text-gray-300' : 'border-gray-300 bg-white';
-    const searchIconColor = isDarkMode ? '#A0AEC0' : '#4A5568';
-    const headerIconColor = isDarkMode ? '#34D399' : '#10B981';
 
     useEffect(() => {
         const userId = auth.currentUser?.uid;
@@ -135,16 +121,16 @@ const PlantsScreen = () => {
             },
         });
         console.log(`Notification scheduled for plant ${plantName} (${type}).`);
-        
+
         console.log("Notifications scheduled successfully.");
         const newScheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
         console.log("Current scheduled notifications:", newScheduledNotifications);
-        
+
         newScheduledNotifications.forEach(notification => {
             console.log("Notification ID:", notification.identifier);
             console.log("Notification Data:", notification.content.data);
         });
-        
+
     };
 
     const handleDelete = async (id: string) => {
@@ -188,7 +174,7 @@ const PlantsScreen = () => {
             });
             // Schedule a new notification after a successful update
             await scheduleNotificationForPlant(plantId, plantName, field === "lastWatered" ? 'watering' : 'fertilizing');
-            
+
         } catch (err) {
             console.error(`Error updating ${field}:`, err);
             Alert.alert(getTranslatedText("Error"), getTranslatedText("Failed to update plant."));
@@ -199,119 +185,339 @@ const PlantsScreen = () => {
 
 
     return (
-        <View className={`flex-1 w-full ${containerClassName}`}>
-            {/* Title with icon */}
-            <View className="flex-row items-center justify-center mt-10 mb-3">
-                <MaterialIcons name="local-florist" size={40} color={headerIconColor} />
-                <Text className={`text-4xl ml-2 font-bold ${headerTextClassName}`}>
-                    {getTranslatedText("My Plants")}
-                </Text>
-            </View>
+        <View style={[styles.container, isDarkMode ? styles.darkBackground : styles.lightBackground]}>
+            {/* Header */}
+            <LinearGradient
+                colors={isDarkMode ? ['#16a34a', '#10b981'] : ['#4ade80', '#16a34a']}
+                style={styles.headerGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+            >
+                <View style={styles.header}>
+                    <TouchableOpacity
+                        style={styles.notificationButton}
+                        onPress={() => router.push("/(dashboard)/plants/notifications")}
+                    >
+                        <Ionicons name="notifications-outline" size={28} color="#fff" />
+                    </TouchableOpacity>
+                    <View style={styles.headerTitleContainer}>
+                        <MaterialIcons name="local-florist" size={40} color="#fff" />
+                        <Text style={styles.headerText}>{getTranslatedText("My Plants")}</Text>
+                    </View>
+                </View>
+            </LinearGradient>
 
-            {/* Search Input with icon */}
-            <View className={`flex-row items-center border rounded-full mx-4 p-2 ${searchInputClassName}`}>
-                <Ionicons name="search-outline" size={20} color={searchIconColor} style={{ marginRight: 8 }} />
+            {/* Search Input */}
+            <View style={[styles.searchInputContainer, isDarkMode ? styles.darkSearchInput : styles.lightSearchInput]}>
+                <Ionicons name="search-outline" size={20} color={isDarkMode ? '#A0AEC0' : '#4A5568'} />
                 <TextInput
                     placeholder={getTranslatedText("Search by name or species...")}
-                    placeholderTextColor={searchIconColor}
-                    className={`flex-1 ${textClassName}`}
+                    placeholderTextColor={isDarkMode ? '#A0AEC0' : '#4A5568'}
+                    style={[styles.searchInput, isDarkMode ? styles.darkSearchInputText : styles.lightSearchInputText]}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                 />
             </View>
-            
-            {/* Notifications button */}
-            <TouchableOpacity
-                className="absolute top-16 right-5 z-10 p-2"
-                onPress={() => router.push("/(dashboard)/plants/notifications")}
-            >
-                <Ionicons name="notifications-outline" size={28} color={headerIconColor} />
-            </TouchableOpacity>
 
-            <View className="absolute bottom-5 right-5 z-10">
-                <Pressable
-                    className="bg-green-500 rounded-full p-5 shadow-lg"
-                    onPress={() => router.push("/(dashboard)/plants/new")}
-                >
-                    <Ionicons name="add" size={28} color="#fff" />
-                </Pressable>
-            </View>
-
-            <ScrollView className="mt-4">
+            {/* Main Content */}
+            <ScrollView contentContainerStyle={styles.scrollViewContent}>
                 {filteredPlants.length === 0 ? (
-                    <Text className={`text-center text-lg mt-10 ${textClassName}`}>
+                    <Text style={[styles.noPlantsText, isDarkMode ? styles.darkText : styles.lightText]}>
                         {searchQuery ? getTranslatedText("No matching plants found.") : getTranslatedText("You have no plants yet. Add one!")}
                     </Text>
                 ) : (
                     filteredPlants.map((plant) => (
-                        <View key={plant.id} className={`p-4 mb-3 rounded-lg mx-4 border shadow-md ${cardClassName}`}>
-
-                            <View className="flex-row items-center">
-                                <View className="flex-1">
-                                    <Text className={`text-xl font-bold ${cardTitleClassName}`}>{plant.name}</Text>
-                                    <Text className={`text-sm mb-2 ${cardSubTextClassName}`}>Species: {plant.species}</Text>
-                                    <Text className={`text-sm mb-2 ${cardSubTextClassName}`}>{getTranslatedText("Last Watered")}: {plant.lastWatered?.toLocaleDateString()}</Text>
-                                    <Text className={`text-sm mb-2 ${cardSubTextClassName}`}>{getTranslatedText("Last Fertilized")}: {plant.lastFertilized?.toLocaleDateString()}</Text>
-                                </View>
-
-                                {plant.imageUrl && (
+                        <View key={plant.id} style={[styles.plantCard, isDarkMode ? styles.darkCard : styles.lightCard]}>
+                            {plant.imageUrl && (
+                                <View style={styles.imageContainer}>
                                     <Image
                                         source={{ uri: plant.imageUrl }}
-                                        style={{
-                                            width: 100,
-                                            height: 100,
-                                            borderRadius: 8,
-                                            marginLeft: 16,
-                                            resizeMode: "cover",
-                                        }}
+                                        style={styles.plantImage}
+                                        resizeMode="cover"
                                     />
-                                )}
+                                </View>
+                            )}
+                            <View style={styles.plantDetails}>
+                                <Text style={[styles.plantName, isDarkMode ? styles.darkCardTitle : styles.lightCardTitle]}>{plant.name}</Text>
+                                <Text style={[styles.plantSpecies, isDarkMode ? styles.darkCardSubText : styles.lightCardSubText]}>Species: {plant.species}</Text>
+                                <Text style={[styles.plantDate, isDarkMode ? styles.darkCardSubText : styles.lightCardSubText]}>{getTranslatedText("Last Watered")}: {plant.lastWatered?.toLocaleDateString()}</Text>
+                                <Text style={[styles.plantDate, isDarkMode ? styles.darkCardSubText : styles.lightCardSubText]}>{getTranslatedText("Last Fertilized")}: {plant.lastFertilized?.toLocaleDateString()}</Text>
                             </View>
-
-                            <View className="flex-row mt-2 items-center">
-                                {/* Water Now Button */}
+                            <View style={styles.buttonGroup}>
                                 <TouchableOpacity
-                                    className={`flex-1 px-4 py-2 rounded-md ${waterButtonColor}`}
+                                    style={[styles.actionButton, styles.waterButton]}
                                     onPress={() => { if (plant.id) handleUpdate(plant.id, plant.name, "lastWatered"); }}
                                 >
-                                    <View className="flex-row items-center justify-center">
-                                        <MaterialIcons name="water-drop" size={20} color="#fff" />
-                                        <Text className="text-white font-semibold ml-2">{getTranslatedText("Water Now")}</Text>
-                                    </View>
+                                    <MaterialIcons name="water-drop" size={20} color="#fff" />
+                                    <Text style={styles.buttonText}>{getTranslatedText("Water Now")}</Text>
                                 </TouchableOpacity>
-
-                                {/* Fertilize Now Button */}
                                 <TouchableOpacity
-                                    className={`flex-1 px-4 py-2 rounded-md ml-2 ${fertilizeButtonColor}`}
+                                    style={[styles.actionButton, styles.fertilizeButton]}
                                     onPress={() => { if (plant.id) handleUpdate(plant.id, plant.name, "lastFertilized"); }}
                                 >
-                                    <View className="flex-row items-center justify-center">
-                                        <MaterialIcons name="local-florist" size={20} color="#fff" />
-                                        <Text className="text-white font-semibold ml-2">{getTranslatedText("Fertilize Now")}</Text>
-                                    </View>
+                                    <MaterialIcons name="local-florist" size={20} color="#fff" />
+                                    <Text style={styles.buttonText}>{getTranslatedText("Fertilize Now")}</Text>
                                 </TouchableOpacity>
                             </View>
-
-                            <View className="flex-row mt-2">
+                            <View style={styles.cardActions}>
                                 <TouchableOpacity
-                                    className={`px-4 py-2 rounded-md ${editButtonColor}`}
+                                    style={[styles.editButton, isDarkMode ? styles.darkEditButton : styles.lightEditButton]}
                                     onPress={() => router.push(`/(dashboard)/plants/${plant.id}`)}
                                 >
-                                    <Text className="text-white font-semibold">{getTranslatedText("Edit")}</Text>
+                                    <Text style={styles.actionText}>{getTranslatedText("Edit")}</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
-                                    className={`px-4 py-2 rounded-md ml-3 ${deleteButtonColor}`}
+                                    style={[styles.deleteButton, isDarkMode ? styles.darkDeleteButton : styles.lightDeleteButton]}
                                     onPress={() => { if (plant.id) handleDelete(plant.id); }}
                                 >
-                                    <Text className="text-white font-semibold">{getTranslatedText("Delete")}</Text>
+                                    <Text style={styles.actionText}>{getTranslatedText("Delete")}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
                     ))
                 )}
             </ScrollView>
+
+            {/* Add Plant FAB */}
+            <Pressable
+                style={styles.fab}
+                onPress={() => router.push("/(dashboard)/plants/new")}
+            >
+                <Ionicons name="add" size={28} color="#fff" />
+            </Pressable>
         </View>
     );
 };
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    lightBackground: {
+        backgroundColor: '#f3f4f6',
+    },
+    darkBackground: {
+        backgroundColor: '#1f2937',
+    },
+    headerGradient: {
+        width: '100%',
+        paddingVertical: 40,
+        paddingHorizontal: 20,
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
+        marginBottom: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 8,
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        top: 20,
+    },
+    headerTitleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    headerText: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        marginLeft: 10,
+        color: '#fff',
+    },
+    notificationButton: {
+        position: 'absolute',
+        right: 10,
+        padding: 5,
+    },
+    searchInputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderRadius: 25,
+        marginHorizontal: 20,
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 5,
+        marginBottom: 20,
+    },
+    lightSearchInput: {
+        backgroundColor: '#fff',
+        borderColor: '#e5e7eb',
+        borderWidth: 1,
+    },
+    darkSearchInput: {
+        backgroundColor: '#374151',
+        borderColor: '#4b5563',
+        borderWidth: 1,
+    },
+    searchInput: {
+        flex: 1,
+        marginLeft: 10,
+    },
+    lightSearchInputText: {
+        color: '#1f2937',
+    },
+    darkSearchInputText: {
+        color: '#d1d5db',
+    },
+    scrollViewContent: {
+        paddingBottom: 100,
+        paddingHorizontal: 20,
+    },
+    plantCard: {
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        padding: 20,
+        marginBottom: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 5,
+    },
+    lightCard: {
+        backgroundColor: '#fff',
+    },
+    darkCard: {
+        backgroundColor: '#374151',
+    },
+    imageContainer: {
+        width: '100%',
+        height: 150,
+        borderRadius: 10,
+        marginBottom: 15,
+        overflow: 'hidden',
+    },
+    plantImage: {
+        width: '100%',
+        height: '100%',
+    },
+    plantDetails: {
+        marginBottom: 15,
+    },
+    plantName: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        marginBottom: 5,
+    },
+    lightCardTitle: {
+        color: '#16a34a',
+    },
+    darkCardTitle: {
+        color: '#6ee7b7',
+    },
+    plantSpecies: {
+        fontSize: 16,
+        fontStyle: 'italic',
+        marginBottom: 5,
+    },
+    plantDate: {
+        fontSize: 14,
+        marginBottom: 3,
+    },
+    lightCardSubText: {
+        color: '#4b5563',
+    },
+    darkCardSubText: {
+        color: '#9ca3af',
+    },
+    buttonGroup: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 10,
+    },
+    actionButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flex: 1,
+        borderRadius: 10,
+        paddingVertical: 12,
+        marginHorizontal: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        elevation: 4,
+    },
+    waterButton: {
+        backgroundColor: '#3b82f6',
+    },
+    fertilizeButton: {
+        backgroundColor: '#10b981',
+    },
+    buttonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        marginLeft: 8,
+    },
+    cardActions: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        marginTop: 10,
+    },
+    editButton: {
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 25,
+        marginRight: 10,
+    },
+    lightEditButton: {
+        backgroundColor: '#f59e0b',
+    },
+    darkEditButton: {
+        backgroundColor: '#d97706',
+    },
+    deleteButton: {
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 25,
+    },
+    lightDeleteButton: {
+        backgroundColor: '#ef4444',
+    },
+    darkDeleteButton: {
+        backgroundColor: '#dc2626',
+    },
+    actionText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    noPlantsText: {
+        textAlign: 'center',
+        fontSize: 18,
+        marginTop: 40,
+    },
+    lightText: {
+        color: '#4b5563',
+    },
+    darkText: {
+        color: '#d1d5db',
+    },
+    fab: {
+        position: 'absolute',
+        bottom: 30,
+        right: 30,
+        backgroundColor: '#10b981',
+        borderRadius: 35,
+        width: 70,
+        height: 70,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 8,
+    },
+});
 
 export default PlantsScreen;
