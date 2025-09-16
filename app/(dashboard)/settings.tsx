@@ -10,7 +10,7 @@ import * as Linking from 'expo-linking';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 
-// Helper component for a single setting item
+
 const SettingItem = ({ icon, label, children, isDarkMode }: { icon: any, label: string, children: React.ReactNode, isDarkMode: boolean }) => (
     <View className={`flex-row items-center justify-between py-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
         <View className="flex-row items-center">
@@ -21,7 +21,7 @@ const SettingItem = ({ icon, label, children, isDarkMode }: { icon: any, label: 
     </View>
 );
 
-// New custom modal for password prompt
+
 const PasswordPromptModal = ({ isVisible, onClose, onConfirm, isDarkMode, getTranslatedText }: { isVisible: boolean, onClose: () => void, onConfirm: (password: string) => void, isDarkMode: boolean, getTranslatedText: (key: string) => string }) => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -89,7 +89,7 @@ const Settings = () => {
     const { language, changeLanguage, availableLanguages } = useLanguage();
     const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
 
-    // Translations for the settings page
+    
     const translations: { [key: string]: { [lang: string]: string } } = {
         "Settings": { "English": "Settings", "Spanish": "Ajustes", "French": "Paramètres", "German": "Einstellungen" },
         "Account": { "English": "Account", "Spanish": "Cuenta", "French": "Compte", "German": "Konto" },
@@ -129,23 +129,23 @@ const Settings = () => {
         return translations[key]?.[language] || key;
     };
 
-    // State for notifications permission
+    
     const [notificationStatus, setNotificationStatus] = useState(getTranslatedText('checking...'));
 
-    // Permissions hooks for camera and gallery
+    
     const [cameraPermission, requestCameraPermission] = useCameraPermissions();
     const [galleryPermission, requestMediaLibraryPermissions] = useMediaLibraryPermissions();
 
-    // New function to check and set the notification permission status
+    
     const checkNotificationStatus = useCallback(async () => {
         const { status } = await Notifications.getPermissionsAsync();
         setNotificationStatus(getTranslatedText(status === 'granted' ? 'Granted' : 'Denied'));
     }, [getTranslatedText]);
 
-    // Check initial permission status for notifications and update when language changes
+    
     useEffect(() => {
         checkNotificationStatus();
-    }, [language, checkNotificationStatus]); // ADDED language to the dependency array
+    }, [language, checkNotificationStatus]); 
 
     const requestPermission = async (type: 'camera' | 'gallery' | 'notifications') => {
         let permission;
@@ -158,7 +158,7 @@ const Settings = () => {
                 break;
             case 'notifications':
                 const { status } = await Notifications.requestPermissionsAsync();
-                // After requesting, re-check the status to ensure the UI updates
+                
                 checkNotificationStatus();
                 if (status === 'granted') return;
                 break;
@@ -224,7 +224,7 @@ const Settings = () => {
             return;
         }
 
-        // Check if the user's login method is email and password
+        
         const isEmailPasswordUser = user.providerData.some(provider => provider.providerId === 'password');
         console.log("User is an email/password user:", isEmailPasswordUser);
 
