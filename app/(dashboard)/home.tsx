@@ -19,7 +19,7 @@ const Home = () => {
     const [notificationPermissionStatus, setNotificationPermissionStatus] = useState<'granted' | 'denied' | 'checking'>('checking');
     const [notificationBannerVisible, setNotificationBannerVisible] = useState(false);
 
-    // Translations for the home page
+    
     const translations: { [key: string]: { [lang: string]: string } } = {
         "GreenScape": { "English": "GreenScape", "Spanish": "GreenScape", "French": "GreenScape", "German": "GreenScape" },
         "Hello, ": { "English": "Hello, ", "Spanish": "¡Hola, ", "French": "Bonjour, ", "German": "Hallo, " },
@@ -70,13 +70,13 @@ const Home = () => {
     const bannerTextClassName = isDarkMode ? 'text-yellow-300' : 'text-yellow-700';
     const cardBgClassName = (color: string) => `${color}-500`;
 
-    // Define gradient colors based on the theme
+    
     const gradientColors = isDarkMode
-        ? ['#1f2937', '#111827'] as const // Dark theme gradient
-        : ['#e0ffe0', '#ffffff'] as const; // Light theme gradient
+        ? ['#1f2937', '#111827'] as const 
+        : ['#e0ffe0', '#ffffff'] as const; 
 
     return (
-        // The LinearGradient is now the top-level component, covering the entire screen
+        
         <LinearGradient
             colors={gradientColors}
             start={{ x: 0, y: 0 }}
