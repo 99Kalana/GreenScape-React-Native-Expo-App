@@ -29,9 +29,9 @@ export const identifyPlant = async (imageUri: string) => {
     }
 
     const data = await response.json();
-    console.log("Plant ID API Response:", data); // Log the full response
+    console.log("Plant ID API Response:", data); 
 
-    // Check if the response contains results
+   
     if (data.results && data.results.length > 0) {
       const bestMatch = data.results[0].species;
       const commonNames = bestMatch.commonNames && bestMatch.commonNames.length > 0
@@ -43,7 +43,7 @@ export const identifyPlant = async (imageUri: string) => {
         commonName: commonNames,
         genus: bestMatch.genus.scientificNameWithoutAuthor,
         family: bestMatch.family.scientificNameWithoutAuthor,
-        image: imageUri, // The original image URI
+        image: imageUri, 
       };
     } else {
       return null;
