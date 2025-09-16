@@ -39,6 +39,7 @@ It demonstrates core mobile development competencies, including:
 Follow these steps to get the project running locally:
 
 ### ✅ Prerequisites
+
 Make sure you have installed:
 
 - [Node.js (LTS)](https://nodejs.org/)  
@@ -52,9 +53,11 @@ Make sure you have installed:
 ```bash
 git clone <Your_GitHub_Repository_Link>
 cd GreenScape
+```
 
 ---
-## 2. Install Dependencies
+
+### 2. Install Dependencies
 
 Run the following command to install all required dependencies:
 
@@ -62,10 +65,11 @@ Run the following command to install all required dependencies:
 npm install
 # or
 yarn install
+```
 
 ---
 
-## 3. Configure Firebase
+### 3. Configure Firebase
 
 Follow these steps to set up Firebase for your project:
 
@@ -81,13 +85,14 @@ EXPO_PUBLIC_FIREBASE_PROJECT_ID="your-project-id"
 EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET="your-storage-bucket"
 EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="your-messaging-sender-id"
 EXPO_PUBLIC_FIREBASE_APP_ID="your-app-id"
+```
 
 ---
 
-## 4. Run the Application
+### 4. Run the Application
 
 Start the development server by running:
 
 ```bash
 npx expo start
-
+```
