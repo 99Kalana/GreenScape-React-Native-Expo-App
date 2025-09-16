@@ -55,9 +55,8 @@ cd GreenScape
 
 ---
 
-### 2. Install Dependencies
+### 1. Clone the Repository
 
-npm install
-# or
-yarn install
-
+```bash
+git clone <Your_GitHub_Repository_Link>
+cd GreenScape
