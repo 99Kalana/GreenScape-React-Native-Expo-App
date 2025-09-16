@@ -3,7 +3,7 @@ import {
     createUserWithEmailAndPassword, 
     signInWithEmailAndPassword, 
     signOut,
-    sendPasswordResetEmail // Added for forgot password functionality
+    sendPasswordResetEmail 
 } from "firebase/auth";
 
 export const register = (email:string, password:string) => {
@@ -18,7 +18,6 @@ export const logout = () => {
     return signOut(auth);
 };
 
-// New function to send a password reset email
 export const forgotPassword = (email: string) => {
     return sendPasswordResetEmail(auth, email);
 };
