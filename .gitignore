@@ -38,7 +38,6 @@ yarn-error.*
 
 app-example
 
-firebase.ts
-
-# .env file created
+#env file
 .env
+

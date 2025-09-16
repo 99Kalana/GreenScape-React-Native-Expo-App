@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "GreenScape-App",
-    "slug": "GreenScape-App",
+    "name": "GreenScape",
+    "slug": "GreenScape",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/GreenScape-logo.png",
+    "icon": "./assets/greenscape-logo.png",
     "scheme": "greenscapeapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/greenscape-logo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -29,7 +29,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/greenscape-logo.png"
     },
     "plugins": [
       [
@@ -67,6 +67,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e20957cc-3dfc-49b4-9c9c-c7d080ca4043"
+      }
     }
   }
 }
