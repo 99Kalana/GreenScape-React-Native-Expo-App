@@ -96,3 +96,4 @@ Start the development server by running:
 ```bash
 npx expo start
 ```
+
