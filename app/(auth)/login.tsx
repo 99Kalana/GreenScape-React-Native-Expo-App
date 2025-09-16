@@ -26,7 +26,7 @@ const Login = () => {
     try {
       await login(email, password);
       Alert.alert("Success", "Login successful!");
-      router.push('/home'); // redirect to home after login
+      router.push('/home'); 
     } catch (err: any) {
       console.log(err);
       if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
