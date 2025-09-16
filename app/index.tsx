@@ -2,13 +2,13 @@ import { View, Text, ActivityIndicator, Image, Animated } from 'react-native';
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
-import { LinearGradient } from 'expo-linear-gradient'; // Import LinearGradient
+import { LinearGradient } from 'expo-linear-gradient'; 
 
 const Index = () => {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [isSplashComplete, setSplashComplete] = useState(false);
-  const fadeAnim = useRef(new Animated.Value(0)).current; // For fade-in animation
+  const fadeAnim = useRef(new Animated.Value(0)).current; 
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -30,11 +30,11 @@ const Index = () => {
 
   return (
     <LinearGradient
-      colors={['#A8E063', '#56AB2F']} // A fresh, vibrant green gradient
+      colors={['#A8E063', '#56AB2F']} 
       style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16 }}
     >
       <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>
-        {/* Optional Plant Logo */}
+        
         <Image
           source={require('@/assets/plant-logo.png')}
           style={{ width: 100, height: 100, marginBottom: 20, shadowColor: '#000', shadowOpacity: 0.1, shadowOffset: { width: 2, height: 2 }, shadowRadius: 4 }}
