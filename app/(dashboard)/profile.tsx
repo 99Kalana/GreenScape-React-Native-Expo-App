@@ -49,7 +49,7 @@ const Profile = () => {
     };
 
     const handleInitialChangePassword = () => {
-        // Basic validation before showing the modal
+        
         if (!oldPassword || !newPassword || !confirmPassword) {
             setError(getTranslatedText('All password fields are required.'));
             return;
@@ -63,12 +63,12 @@ const Profile = () => {
             return;
         }
 
-        setError(''); // Clear previous errors
+        setError(''); 
         setModalVisible(true);
     };
 
     const handleConfirmChangePassword = async () => {
-        setModalVisible(false); // Hide the modal
+        setModalVisible(false); 
         setIsLoading(true);
         try {
             if (auth.currentUser && auth.currentUser.email) {
