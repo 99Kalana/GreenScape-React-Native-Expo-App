@@ -53,38 +53,11 @@ Make sure you have installed:
 git clone <Your_GitHub_Repository_Link>
 cd GreenScape
 
-### 2. Clone the Repository
+---
+
+### 2. Install Dependencies
 
 npm install
 # or
 yarn install
 
-
-3. Configure Firebase
-
-Create a new project in the Firebase Console
-.
-
-Set up Authentication and Firestore Database.
-
-Add a new Web App and copy the firebaseConfig object.
-
-In your project root, create a .env file and add the following variables:
-
-
-
-EXPO_PUBLIC_FIREBASE_API_KEY="your-api-key"
-EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN="your-auth-domain"
-EXPO_PUBLIC_FIREBASE_PROJECT_ID="your-project-id"
-EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET="your-storage-bucket"
-EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="your-messaging-sender-id"
-EXPO_PUBLIC_FIREBASE_APP_ID="your-app-id"
-
-
-4. Run the Application
-
-Start the development server:
-
-npx expo start
-
-Scan the QR code using the Expo Go app on your mobile device to launch the application.
