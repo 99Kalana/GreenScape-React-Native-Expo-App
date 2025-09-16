@@ -54,10 +54,9 @@ git clone <Your_GitHub_Repository_Link>
 cd GreenScape
 
 ---
+## 2. Install Dependencies
 
-### 2. Install Dependencies
-
-Run the following command to install the required dependencies:
+Run the following command to install all required dependencies:
 
 ```bash
 npm install
@@ -66,12 +65,14 @@ yarn install
 
 ---
 
-### 3. Configure Firebase
+## 3. Configure Firebase
 
-- Create a new project in the [Firebase Console](https://console.firebase.google.com/).
-- Set up **Authentication** and **Firestore Database**.
-- Add a new Web App and copy the `firebaseConfig` object.
-- In your project root, create a `.env` file and add the following variables:
+Follow these steps to set up Firebase for your project:
+
+1. Create a new project in the [Firebase Console](https://console.firebase.google.com/).
+2. Set up **Authentication** and **Firestore Database**.
+3. Add a new Web App and copy the `firebaseConfig` object.
+4. In your project root, create a `.env` file and add the following variables:
 
 ```env
 EXPO_PUBLIC_FIREBASE_API_KEY="your-api-key"
@@ -83,9 +84,10 @@ EXPO_PUBLIC_FIREBASE_APP_ID="your-app-id"
 
 ---
 
-### 4. Run the Application
+## 4. Run the Application
 
 Start the development server by running:
 
 ```bash
 npx expo start
+
