@@ -2,7 +2,7 @@ import { View, Text, Pressable } from "react-native";
 import React from "react";
 import { useRouter, useSegments } from "expo-router";
 
-// Define your app's navigation tabs and paths
+
 const tabs = [
     { label: "Home", path: "/dashboard/home" },
     { label: "Plants", path: "/dashboard/plants" },
